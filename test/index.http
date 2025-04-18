@@ -1,0 +1,209 @@
+@baseUrl = http://localhost:3000/api/auth
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2VhZTljYjU4NDI2NGQ4ZTJjZGM4Y2IiLCJyb2xlIjoidXNlciIsImVtYWlsIjoianVhbi5wZXJlekBleGFtcGxlLmNvbSIsImlhdCI6MTc0MzQ0ODgxNiwiZXhwIjoxNzQzNTM1MjE2fQ.iLTde8uqtaFttB_Vi49JXHXf93HTdTUCRE6pS51oCqA
+
+### 1. Registro de usuario
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{
+  "firstName": "Juan",
+  "lastName": "Pérez",
+  "email": "juan.perez@example.com",
+  "password": "Password123"
+}
+
+### 2. Verificación de email (tras recibir código)
+POST {{baseUrl}}/verify-email
+Content-Type: application/json
+
+{
+  "email": "juan.perez@example.com",
+  "verificationCode": "886701"
+}
+
+### 3. Login de usuario
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "email": "juan.perez@example.com",
+  "password": "Password123"
+}
+
+### 4. Obtener datos del usuario actual
+GET {{baseUrl}}/me
+Authorization: Bearer {{token}}
+
+### 5. Actualizar datos de usuario (onboarding)
+PUT {{baseUrl}}/onboarding
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "firstName": "Juan Carlos",
+  "lastName": "Pérez García",
+  "company": {
+    "name": "Mi Empresa SL",
+    "cif": "B12345678",
+    "address": {
+      "street": "Calle Principal",
+      "number": 123,
+      "postal": 28001,
+      "city": "Madrid"
+    }
+  }
+}
+
+### 6. Solicitar recuperación de contraseña
+POST {{baseUrl}}/forgot-password
+Content-Type: application/json
+
+{
+  "email": "juan.perez@example.com"
+}
+
+### 7. Restablecer contraseña
+POST {{baseUrl}}/reset-password
+Content-Type: application/json
+
+{
+  "token": "557889",
+  "newPassword": "NewPassword456"
+}
+
+### 8. Subir logo de perfil
+PATCH {{baseUrl}}/logo
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="image"; filename="logo.png"
+Content-Type: image/png
+
+< ./logo.png
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+//INVITACIONES
+@invitationId = 67eaeb54584264d8e2cdc8de
+@invitatorToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2VhZWI1NDU4NDI2NGQ4ZTJjZGM4ZGUiLCJyb2xlIjoidXNlciIsImVtYWlsIjoiam9yZ2UuYWxvbnNvQGV4YW1wbGUuY29tIiwiaWF0IjoxNzQzNDQ4OTM3LCJleHAiOjE3NDM1MzUzMzd9.vrqcqKiOJXlb2gubL7vmm5I-BP7b4nKrFSkVqZAznYE
+### 9. Registro de usuario
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{
+  "firstName": "Jorge",
+  "lastName": "Alonso",
+  "email": "jorge.alonso@example.com",
+  "password": "Password123"
+}
+
+### 10. Verificación de email (tras recibir código)
+POST {{baseUrl}}/verify-email
+Content-Type: application/json
+
+{
+  "email": "jorge.alonso@example.com",
+  "verificationCode": "522670"
+}
+
+### 11. Login de usuario
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "email": "jorge.alonso@example.com",
+  "password": "Password123"
+}
+
+### 12. Obtener invitaciones recibidas
+POST {{baseUrl}}/invitations/send
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "email": "juan.perez@example.com",
+  "role": "user"
+}
+
+### 13. Obtener invitaciones recibidas
+GET {{baseUrl}}/invitations/received
+Authorization: Bearer {{token}}
+
+### 14. Obtener invitaciones enviadas
+GET {{baseUrl}}/invitations/sent
+Authorization: Bearer {{token}}
+
+### 15. Aceptar una invitación
+//No conseguido
+PUT {{baseUrl}}/invitations/accept/{{invitationId}}
+Authorization: Bearer {{token}}
+
+### 16. Rechazar una invitación
+//No conseguido
+PUT {{baseUrl}}/invitations/reject/{{invitationId}}
+Authorization: Bearer {{token}}
+
+### 17. Cancelar una invitación enviada
+//No conseguido
+DELETE {{baseUrl}}/invitations/cancel/{{invitationId}}
+Authorization: Bearer {{token}}
+
+### 18. Enviar invitación con datos incompletos (para probar errores)
+//No conseguido
+POST {{baseUrl}}/invitations/send
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "email": ""
+}
+
+### 19. Intentar aceptar una invitación no existente (para probar errores)
+//No conseguido
+PUT {{baseUrl}}/invitations/accept/5f9a3b5c1d2e3f4a5b6c7d8e
+Authorization: Bearer {{token}}
+
+//FIN INVITACIONES
+
+
+//DELETES
+### 10. Eliminar usuario (soft delete)
+DELETE {{baseUrl}}/delete
+Authorization: Bearer {{token}}
+
+### 11. Eliminar usuario (hard delete)
+DELETE {{baseUrl}}/delete?soft=false
+Authorization: Bearer {{token}}
+
+
+
+//PRUEBAS DE ERRORES
+### 12. Login con credenciales incorrectas (para probar errores)
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+  "email": "juan.perez@example.com",
+  "password": "PasswordIncorrecto"
+}
+
+### 13. Verificar email con código incorrecto (para probar errores)
+POST {{baseUrl}}/verify-email
+Content-Type: application/json
+
+{
+  "email": "juan.perez@example.com",
+  "verificationCode": "000000"
+}
+
+### 14. Intentar acceder a ruta protegida sin token (para probar errores)
+GET {{baseUrl}}/me
+
+### 15. Intentar recuperar contraseña con email inexistente (para probar errores)
+POST {{baseUrl}}/forgot-password
+Content-Type: application/json
+
+{
+  "email": "noexiste@example.com"
+}
+
