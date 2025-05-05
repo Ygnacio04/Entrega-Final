@@ -171,7 +171,63 @@ const deleteClient = async (req, res) => {
     }
 };
 
+/**
+ * Obtener clientes archivados
+ * @param {Object} req
+ * @param {Object} res
+ */
+const getArchivedClients = async (req, res) => {
+    try {
+        const user = req.user;
+        
+        // Buscar clientes archivados del usuario o de su compañía
+        const clients = await clientsModel.findDeleted({
+            $or: [
+                { createdBy: user._id },
+                { company: user.company?._id }
+            ]
+        });
 
+        res.send({ clients });
+    } catch (error) {
+        console.log(error);
+        handleHttpError(res, "ERROR_GET_ARCHIVED_CLIENTS");
+    }
+};
+
+/**
+ * Restaurar un cliente archivado
+ * @param {Object} req
+ * @param {Object} res
+ */
+const restoreClient = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const user = req.user;
+
+        // Verificar que el cliente archivado existe y pertenece al usuario o su compañía
+        const client = await clientsModel.findOneDeleted({
+            _id: id,
+            $or: [
+                { createdBy: user._id },
+                { company: user.company?._id }
+            ]
+        });
+
+        if (!client) {
+            return handleHttpError(res, "ARCHIVED_CLIENT_NOT_FOUND", 404);
+        }
+
+        // Restaurar cliente
+        await clientsModel.restore({ _id: id });
+        
+        const restoredClient = await clientsModel.findById(id);
+        res.send({ client: restoredClient, message: "CLIENT_RESTORED" });
+    } catch (error) {
+        console.log(error);
+        handleHttpError(res, "ERROR_RESTORE_CLIENT");
+    }
+};  
 
 module.exports = {
     createClient,
@@ -179,4 +235,6 @@ module.exports = {
     getClient,
     updateClient,
     deleteClient,
+    getArchivedClients,
+    restoreClient
 };
