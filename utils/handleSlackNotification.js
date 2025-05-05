@@ -1,18 +1,15 @@
-const { WebClient } = require('@slack/web-api');
-
-// Verificar si las credenciales de Slack están configuradas
-const isSlackConfigured = () => {
-  return process.env.SLACK_TOKEN && process.env.SLACK_CHANNEL;
-};
-
-// Crear cliente de Slack si está configurado
-let slack;
-if (isSlackConfigured()) {
-  slack = new WebClient(process.env.SLACK_TOKEN);
-}
+const axios = require("axios");
 
 /**
- * Enviar notificación a Slack
+ * Verificar si la configuración de Slack está establecida
+ * @returns {Boolean} Verdadero si está configurado
+ */
+const isSlackConfigured = () => {
+  return process.env.SLACK_WEBHOOK && process.env.SLACK_WEBHOOK.startsWith('https://hooks.slack.com/');
+};
+
+/**
+ * Enviar notificación a Slack usando webhook
  * @param {String} message - Mensaje a enviar
  * @param {Object} error - Objeto de error opcional
  */
@@ -30,11 +27,9 @@ const sendSlackNotification = async (message, error = null) => {
       formattedMessage += `\n\`\`\`\n${error.stack || error.message || JSON.stringify(error)}\n\`\`\``;
     }
 
-    // Enviar el mensaje al canal configurado
-    await slack.chat.postMessage({
-      channel: process.env.SLACK_CHANNEL,
-      text: formattedMessage,
-      mrkdwn: true
+    // Enviar el mensaje al webhook configurado
+    await axios.post(process.env.SLACK_WEBHOOK, {
+      text: formattedMessage
     });
 
     console.log('Notificación enviada a Slack exitosamente.');
