@@ -175,4 +175,108 @@ const updateProject = async (req, res) => {
    }
 };
 
+/**
+ * Eliminar un proyecto (soft delete o hard delete)
+ * @param {Object} req
+ * @param {Object} res
+ */
+const deleteProject = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const user = req.user;
+        const { hard } = req.query; // si hard=true, se realiza hard delete
 
+        // Verificar que el proyecto existe y pertenece al usuario o su compañía
+        const project = await projectsModel.findOne({
+            _id: id,
+            $or: [
+                { createdBy: user._id },
+                { company: user.company?._id }
+            ]
+        });
+
+        if (!project) {
+            return handleHttpError(res, "PROJECT_NOT_FOUND", 404);
+        }
+
+        // Realizar soft delete o hard delete según corresponda
+        if (hard === 'true') {
+            await projectsModel.deleteOne({ _id: id });
+            res.send({ message: "PROJECT_DELETED_PERMANENTLY" });
+        } else {
+            await projectsModel.delete({ _id: id }); // soft delete usando plugin mongoose-delete
+            res.send({ message: "PROJECT_ARCHIVED" });
+        }
+    } catch (error) {
+        console.log(error);
+        handleHttpError(res, "ERROR_DELETE_PROJECT");
+    }
+};
+
+/**
+ * Obtener proyectos archivados
+ * @param {Object} req
+ * @param {Object} res
+ */
+const getArchivedProjects = async (req, res) => {
+    try {
+        const user = req.user;
+        
+        // Buscar proyectos archivados del usuario o de su compañía
+        const projects = await projectsModel.findDeleted({
+            $or: [
+                { createdBy: user._id },
+                { company: user.company?._id }
+            ]
+        }).populate('client');
+
+        res.send({ projects });
+    } catch (error) {
+        console.log(error);
+        handleHttpError(res, "ERROR_GET_ARCHIVED_PROJECTS");
+    }
+};
+
+/**
+ * Restaurar un proyecto archivado
+ * @param {Object} req
+ * @param {Object} res
+ */
+const restoreProject = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const user = req.user;
+
+        // Verificar que el proyecto archivado existe y pertenece al usuario o su compañía
+        const project = await projectsModel.findOneDeleted({
+            _id: id,
+            $or: [
+                { createdBy: user._id },
+                { company: user.company?._id }
+            ]
+        });
+
+        if (!project) {
+            return handleHttpError(res, "ARCHIVED_PROJECT_NOT_FOUND", 404);
+        }
+
+        // Restaurar proyecto
+        await projectsModel.restore({ _id: id });
+        
+        const restoredProject = await projectsModel.findById(id).populate('client');
+        res.send({ project: restoredProject, message: "PROJECT_RESTORED" });
+    } catch (error) {
+        console.log(error);
+        handleHttpError(res, "ERROR_RESTORE_PROJECT");
+    }
+};
+
+module.exports = {
+    createProject,
+    getProjects,
+    getProject,
+    updateProject,
+    deleteProject,
+    getArchivedProjects,
+    restoreProject
+};
