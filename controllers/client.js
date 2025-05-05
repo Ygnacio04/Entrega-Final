@@ -91,7 +91,7 @@ const getClients = async (req, res) => {
 
     }catch(error){
         console.log(error);
-        handleHttpError(res, "ERROR_GET_CLIENTS")
+        handleHttpError(res, "ERROR_GET_CLIENTS");
     }
 };
 
@@ -117,7 +117,7 @@ const updateClient = async (req, res) => {
         });
 
         if(!clientExists){
-            return handleHttpError(res, "CLIENT_NOT_FOUND", 404)
+            return handleHttpError(res, "CLIENT_NOT_FOUND", 404);
         }
 
         // Actualizar cliente
@@ -130,6 +130,53 @@ const updateClient = async (req, res) => {
         res.send({client});
     }catch(error){
         console.log(error);
-        handleHttpError(res, "ERROR_UPDATE_CLIENT")
+        handleHttpError(res, "ERROR_UPDATE_CLIENT");
     }
+};
+
+/**
+ * Eliminar un cliente
+ * @param {Object} req
+ * @param {Object} res
+ */
+
+const deleteClient = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const user = req.user;
+        const { hard } = req.query; // si hard=true, hard delete
+
+        // Verificar que el cliente existe y pertenece al usuario o compañía
+        const client = await clientsModel.findOne({
+            _id: id,
+            $or: [
+                { createdBy: user._id },
+                { company: user.company?._id }
+            ]
+        });
+        if (!client) {
+            return handleHttpError(res, "CLIENT_NOT_FOUND", 404);
+        }
+        // Realizar soft delete o hard delete
+        if (hard === 'true') {
+            await clientsModel.deleteOne({ _id: id });
+            res.send({ message: "CLIENT_DELETED_PERMANENTLY" });
+        } else {
+            await clientsModel.delete({ _id: id }); // soft delete
+            res.send({ message: "CLIENT_ARCHIVED" });
+        }
+    }catch(error){
+        console.log(error);
+        handleHttpError(res, "ERROR_DELETE_CLIENT")
+    }
+};
+
+
+
+module.exports = {
+    createClient,
+    getClients,
+    getClient,
+    updateClient,
+    deleteClient,
 };
