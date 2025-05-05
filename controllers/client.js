@@ -94,3 +94,42 @@ const getClients = async (req, res) => {
         handleHttpError(res, "ERROR_GET_CLIENTS")
     }
 };
+
+/**
+ * Actualizar un cliente
+ * @param {Object} req
+ * @param {Object} res
+ */
+
+const updateClient = async (req, res) => {
+    try{
+        const{id} = req.params;
+        const body = matchedData(req);
+        const user = req.user;
+
+        //Verificar que existe el cliente del usuario o compañía
+        const clientExists = await clientsModel.findOne({
+            _id: id,
+            $or: [
+                {createdBy: user._id},
+                {company: user.company?._id}
+            ]
+        });
+
+        if(!clientExists){
+            return handleHttpError(res, "CLIENT_NOT_FOUND", 404)
+        }
+
+        // Actualizar cliente
+        const client = await clientsModel.findByIdAndUpdate(
+            id,
+            body,
+            { new: true }
+        );
+
+        res.send({client});
+    }catch(error){
+        console.log(error);
+        handleHttpError(res, "ERROR_UPDATE_CLIENT")
+    }
+};
