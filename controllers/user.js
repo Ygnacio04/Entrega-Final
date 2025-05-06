@@ -26,7 +26,7 @@ const registerCtrl = async (req, res) => {
         const verificationCode = generateVerificationCode();
         const maxAttempts = 3;
 
-        //Crear usuario no verificado
+        // Crear usuario no verificado
         const body = { 
             firstName: req.firstName,
             lastName: req.lastName,
@@ -37,6 +37,16 @@ const registerCtrl = async (req, res) => {
         };
         
         const dataUser = await usersModel.create(body);
+
+        // Enviar correo con código de verificación
+        try {
+            await sendVerificationEmail(req.email, verificationCode);
+            console.log(`Correo de verificación enviado a ${req.email}`);
+        } catch (emailError) {
+            console.error(`Error al enviar correo de verificación: ${emailError}`);
+            // No devolvemos error al cliente para no bloquear el registro
+        }
+        
         dataUser.set('password', undefined, { strict: false }); // Excluir la contraseña del resultado
 
         const data = {
@@ -196,9 +206,17 @@ const forgotPasswordCtrl = async (req, res) => {
         user.resetPasswordExpires = resetTokenExpires;
         await user.save();
 
+        // Enviar correo con token de recuperación
+        try {
+            await sendPasswordResetEmail(email, resetToken);
+            console.log(`Correo de recuperación enviado a ${email}`);
+        } catch (emailError) {
+            console.error(`Error al enviar correo de recuperación: ${emailError}`);
+            // Podemos continuar aunque falle el email
+        }
+
         res.send({
-            message: "Token generado para recuperación",
-            resetToken
+            message: "Se ha enviado un correo con instrucciones para recuperar tu contraseña"
         });
     } catch (err) {
         console.log(err);
@@ -291,6 +309,19 @@ const sendInvitationCtrl = async (req, res) => {
         await usersModel.findByIdAndUpdate(currentUser._id, {
             $push: { sentInvitations: { ...invitation, inviterId: invitedUser._id } }
         });
+
+        // Enviar correo de invitación
+        try {
+            await sendInvitationEmail(
+                email, 
+                `${currentUser.firstName} ${currentUser.lastName}`, 
+                currentUser.company.name
+            );
+            console.log(`Correo de invitación enviado a ${email}`);
+        } catch (emailError) {
+            console.error(`Error al enviar correo de invitación: ${emailError}`);
+            // Podemos continuar aunque falle el email
+        }
 
         res.send({ 
             message: "Invitación enviada exitosamente",

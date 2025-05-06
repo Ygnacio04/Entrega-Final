@@ -14,7 +14,6 @@ PINATA_GATEWAY = tu_gateway_de_pinata
 
 # JWT
 JWT_SECRET = tu_secret_para_jwt
-JWT_SECRET_KEY = tu_secret_key_para_jwt
 
 # Configuración de email
 EMAIL_USER = tu_email@dominio.com
