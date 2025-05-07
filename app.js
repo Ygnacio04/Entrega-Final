@@ -15,17 +15,14 @@ app.use(express.json());
 
 // Conexión a MongoDB
 mongoose
-  .connect(process.env.DB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  .connect(process.env.DB_URI)
   .then(() => {
     console.log("Conexión a la base de datos exitosa");
   })
   .catch((err) => {
     console.error("Error de conexión a la base de datos", err);
     process.exit(1);
-  });
+  })
 
 // Configuración de Swagger
 const swaggerOptions = {

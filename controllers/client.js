@@ -13,7 +13,6 @@ const createClient = async (req, res) => {
         const user = req.user;
         const body = matchedData(req);
 
-
         //Ver si existe ya
         const existingClient = await clientsModel.findOne({
             name: body.name,
@@ -23,15 +22,18 @@ const createClient = async (req, res) => {
             ]
         });
         if(existingClient){
-            return handleHttpError(res, "CLIENT_ALREADY_EXISTS, 409");
+            return handleHttpError(res, "CLIENT_ALREADY_EXISTS", 409);
         }
 
         //Crear cliente
         const client = await clientsModel.create({
             ...body,
-            createBy: user._id,
+            createdBy: user._id,
             company: user.company?._id
-        })
+        });
+
+        // Send back the created client
+        res.status(201).send({ client });
 
     } catch (error) {
         console.log(error);
