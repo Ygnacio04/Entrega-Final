@@ -1,7 +1,8 @@
 const request = require('supertest');
 const mongoose = require('mongoose');
-const app = require('../app');
+const { app, server } = require('../app');
 const { usersModel } = require('../models');
+
 
 describe('User API endpoints', () => {
   let token;
@@ -18,6 +19,7 @@ describe('User API endpoints', () => {
   });
 
   afterAll(async () => {
+    await new Promise(resolve => server.close(resolve));
     await mongoose.connection.close();
   });
 

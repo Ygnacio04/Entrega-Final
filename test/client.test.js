@@ -1,6 +1,6 @@
 const request = require('supertest');
 const mongoose = require('mongoose');
-const app = require('../app');
+const { app, server } = require('../app'); 
 const { usersModel, clientsModel } = require('../models');
 
 describe('Client API endpoints', () => {
@@ -46,6 +46,7 @@ describe('Client API endpoints', () => {
     // Limpiar datos de prueba
     await clientsModel.deleteMany({ name: 'Test Client' });
     await usersModel.deleteMany({ email: testUser.email });
+    await new Promise(resolve => server.close(resolve));
     await mongoose.connection.close();
   });
 

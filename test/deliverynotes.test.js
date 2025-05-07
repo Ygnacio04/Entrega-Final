@@ -1,6 +1,6 @@
 const request = require('supertest');
 const mongoose = require('mongoose');
-const app = require('../app');
+const { app, server } = require('../app'); 
 const { usersModel, clientsModel, projectsModel, deliveryNotesModel } = require('../models');
 const path = require('path');
 
@@ -90,6 +90,7 @@ describe('Delivery Note API endpoints', () => {
     await projectsModel.deleteMany({ name: 'Test Project for DeliveryNotes' });
     await clientsModel.deleteMany({ name: 'Test Client for DeliveryNotes' });
     await usersModel.deleteMany({ email: testUser.email });
+    await new Promise(resolve => server.close(resolve));
     await mongoose.connection.close();
   });
   
