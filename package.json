@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node app.js",
     "dev": "nodemon app.js",
-    "test": "jest --watch"
+    "test": "jest --detectOpenHandles"
   },
   "dependencies": {
     "axios": "^1.6.7",

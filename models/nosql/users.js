@@ -128,9 +128,6 @@ const UserScheme = new mongoose.Schema({
     versionKey: false
 });
 
-// Solo email tiene índice único
-UserScheme.index({ 'email': 1 }, { unique: true });
-
 UserScheme.plugin(mongooseDelete, { overrideMethods: "all" }); 
 
 module.exports = mongoose.model('User', UserScheme);

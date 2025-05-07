@@ -64,6 +64,8 @@ const getClient = async (req, res) => {
         if (!client) {
             return handleHttpError(res, "CLIENT_NOT_FOUND", 404);
         }
+        
+        res.send({ client });
 
     }catch(error){
         console.log(error);

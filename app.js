@@ -83,8 +83,8 @@ app.use((req, res, next) => {
 
 // Puerto del servidor
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Servidor escuchando en el puerto ${PORT}`);
 });
 
-module.exports = app;
+module.exports = {app,server};
