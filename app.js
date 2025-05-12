@@ -5,7 +5,7 @@ const dotenv = require("dotenv");
 const path = require("path");
 const swaggerUI = require("swagger-ui-express");
 const errorHandler = require("./middleware/errorHandler");
-const { sendVerificationEmail } = require("./utils/handleEmailSender");
+const {sendEmail, sendVerificationEmail, sendPasswordResetEmail, sendInvitationEmail } = require("./utils/handleEmailSender");
 
 dotenv.config();
 

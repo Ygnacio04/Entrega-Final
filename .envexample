@@ -1,23 +1,29 @@
-# Puerto del servidor
+# Configuración del servidor
 PORT = 3000
-
-# URI de conexión a MongoDB
-DB_URI = mongodb+srv://usuario:contraseña@cluster.mongodb.net/BaseDeDatos
-
-# URL pública de la API
 PUBLIC_URL = http://localhost:3000
 
-# Claves de Pinata para IPFS
+# Base de datos
+DB_URI = mongodb+srv://usuario:contraseña@cluster.mongodb.net/NombreBaseDeDatos?retryWrites=true&w=majority
+
+# JWT (JSON Web Token)
+JWT_SECRET = clave_secreta_jwt
+
+# Configuración de Pinata para IPFS
 PINATA_API_KEY = api_key_de_pinata
-PINATA_SECRET = secret_api_key_de_pinata
-PINATA_GATEWAY = gateway_de_pinata
+PINATA_SECRET = clave_secreta_de_pinata
+PINATA_GATEWAY = nombre_de_gateway.mypinata.cloud
 
-# JWT
-JWT_SECRET = tu_secret_para_jwt
+# Configuración de Email con OAuth2
+EMAIL = correo@gmail.com
+EMAIL_USER = correo@gmail.com
+EMAIL_PASSWORD = contraseña_de_aplicacion
 
-# Configuración de email
-EMAIL_USER = email@dominio.com
-EMAIL_PASSWORD = contraseña
+# Google OAuth2 para envío de emails
+CLIENT_ID = client_id_de_google_oauth
+CLIENT_SECRET = client_secret_de_google_oauth
+REFRESH_TOKEN = refresh_token_de_google_oauth
+ACCESS_MAIL_TOKEN = access_token_de_google
+REDIRECT_URI = https://developers.google.com/oauthplayground
 
-# Webhook de Slack para notificaciones
-SLACK_WEBHOOK = https://hooks.slack.com/services/webhook_de_slack
+# Slack para notificaciones de errores
+SLACK_WEBHOOK = https://hooks.slack.com/services/tu_webhook_de_slack
