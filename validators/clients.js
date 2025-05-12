@@ -33,6 +33,37 @@ const validatorCreateClient = [
     (req, res, next) => validateResults(req, res, next)
 ];
 
+const validatorUpdateClient = [
+    check('name')
+        .optional()  // Hace que el campo sea opcional
+        .isLength({ min: 3 }).withMessage('Client name must be at least 3 characters long'),
+    check('nif')
+        .optional()
+        .isString().withMessage('NIF must be a string'),
+    check('address')
+        .optional()
+        .isObject().withMessage('Address must be an object'),
+    check('address.street')
+        .optional()
+        .isString().withMessage('Street must be a string'),
+    check('address.number')
+        .optional()
+        .isNumeric().withMessage('Number must be numeric'),
+    check('address.postal')
+        .optional()
+        .isNumeric().withMessage('Postal code must be numeric'),
+    check('address.city')
+        .optional()
+        .isString().withMessage('City must be a string'),
+    check('email')
+        .optional()
+        .isEmail().withMessage('Email is invalid'),
+    check('phone')
+        .optional()
+        .isString().withMessage('Phone must be a string'),
+    (req, res, next) => validateResults(req, res, next)
+];
+
 const validatorGetClient = [
     check('id')
         .notEmpty().withMessage('Client ID is required')
@@ -45,4 +76,4 @@ const validatorGetClient = [
     (req, res, next) => validateResults(req, res, next)
 ];
 
-module.exports = { validatorCreateClient, validatorGetClient };
+module.exports = { validatorCreateClient, validatorUpdateClient, validatorGetClient };

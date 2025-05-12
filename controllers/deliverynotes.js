@@ -247,6 +247,116 @@ const updateDeliveryNote = async (req, res) => {
 };
 
 /**
+ * Obtener albaranes archivados
+ * @param {Object} req
+ * @param {Object} res
+ */
+const getArchivedDeliveryNotes = async (req, res) => {
+    try {
+        const user = req.user;
+        const { projectId, clientId, status } = req.query;
+
+        const query = {
+            $or: [
+                { createdBy: user._id },
+                { company: user.company?._id }
+            ]
+        };
+
+        // Filtrar por proyecto
+        if (projectId) {
+            query.project = projectId;
+        }
+
+        // Filtrar por estado
+        if (status) {
+            query.status = status;
+        }
+
+        // Filtrar por clientId
+        if (clientId) {
+            const projects = await projectsModel.find({
+                client: clientId,
+                $or: [
+                    { createdBy: user._id },
+                    { company: user.company?._id }
+                ]
+            });
+            
+            if (projects.length > 0) {
+                const projectIds = projects.map(p => p._id);
+                query.project = { $in: projectIds };
+            } else {
+                return res.send({ deliveryNotes: [] });
+            }
+        }
+
+        // Obtener albaranes archivados con populate
+        const deliveryNotes = await deliveryNotesModel.findDeleted(query)
+            .populate({
+                path: 'project',
+                populate: {
+                    path: 'client'
+                }
+            })
+            .populate('createdBy', 'firstName lastName email company')
+            .populate('company', 'company')
+            .sort({ createdAt: -1 });
+
+        res.send({ deliveryNotes });
+    } catch (error) {
+        console.log(error);
+        handleHttpError(res, "ERROR_GET_ARCHIVED_DELIVERY_NOTES");
+    }
+};
+
+/**
+ * Restaurar un albarán archivado
+ * @param {Object} req
+ * @param {Object} res
+ */
+const restoreDeliveryNote = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const user = req.user;
+
+        // Verificar que el albarán archivado existe y pertenece al usuario o su compañía
+        const deliveryNote = await deliveryNotesModel.findOneDeleted({
+            _id: id,
+            $or: [
+                { createdBy: user._id },
+                { company: user.company?._id }
+            ]
+        });
+
+        if (!deliveryNote) {
+            return handleHttpError(res, "ARCHIVED_DELIVERY_NOTE_NOT_FOUND", 404);
+        }
+
+        // Restaurar albarán
+        await deliveryNotesModel.restore({ _id: id });
+        
+        const restoredDeliveryNote = await deliveryNotesModel.findById(id)
+            .populate({
+                path: 'project',
+                populate: {
+                    path: 'client'
+                }
+            })
+            .populate('createdBy', 'firstName lastName email company')
+            .populate('company', 'company');
+
+        res.send({ 
+            deliveryNote: restoredDeliveryNote, 
+            message: "DELIVERY_NOTE_RESTORED" 
+        });
+    } catch (error) {
+        console.log(error);
+        handleHttpError(res, "ERROR_RESTORE_DELIVERY_NOTE");
+    }
+};
+
+/**
  * Eliminar un albarán
  * @param {Object} req
  * @param {Object} res
@@ -661,5 +771,7 @@ module.exports = {
     updateDeliveryNote,
     deleteDeliveryNote,
     signDeliveryNote,
-    getDeliveryNotePdf
+    getDeliveryNotePdf,
+    getArchivedDeliveryNotes,
+    restoreDeliveryNote
 };

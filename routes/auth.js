@@ -1,5 +1,5 @@
 const express = require("express");
-const { validatorRegister, validatorLogin, validatorValidateEmail, validatorSendInvitation, validatorInvitationId  } = require("../validators/auth");
+const { validatorRegister, validatorLogin, validatorValidateEmail, validatorCompanyPatch, validatorForgotPassword, validatorResetPassword, validatorSendInvitation, validatorInvitationId  } = require("../validators/auth");
 const {uploadMiddlewareMemory} = require("../utils/handleStorage");
 const authMiddleware = require("../middleware/session");
 
@@ -355,7 +355,8 @@ router.post(
  */
 
 router.post(
-    "/reset-password", 
+    "/reset-password",
+    validatorResetPassword, 
     resetPasswordCtrl
 );
 

@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { validatorCreateClient, validatorGetClient } = require("../validators/clients");
+const { validatorCreateClient, validatorUpdateClient ,validatorGetClient } = require("../validators/clients");
 const authMiddleware = require("../middleware/session");
 const { 
     createClient, 
@@ -264,7 +264,7 @@ router.get("/:id", validatorGetClient, getClient);
  *         description: Error del servidor
  */
 
-router.put("/:id", validatorCreateClient, updateClient);
+router.put("/:id", validatorUpdateClient, updateClient);
 
 /**
  * @swagger
@@ -303,7 +303,7 @@ router.put("/:id", validatorCreateClient, updateClient);
  *         description: Error del servidor
  */
 
-router.patch("/:id", validatorCreateClient, updateClient);
+router.patch("/:id", validatorUpdateClient, updateClient);
 
 /**
  * @swagger

@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { uploadMiddlewareMemory } = require("../utils/handleStorage");
-const { validatorCreateDeliveryNote, validatorGetDeliveryNote } = require("../validators/deliverynotes");
+const { validatorCreateDeliveryNote, validatorUpdateDeliveryNote, validatorGetDeliveryNote } = require("../validators/deliverynotes");
 const authMiddleware = require("../middleware/session");
 const { 
     createDeliveryNote, 
@@ -9,7 +9,9 @@ const {
     getDeliveryNote, 
     updateDeliveryNote, 
     deleteDeliveryNote, 
-    signDeliveryNote, 
+    signDeliveryNote,
+    restoreDeliveryNote,
+    getArchivedDeliveryNotes, 
     getDeliveryNotePdf 
 } = require("../controllers/deliverynotes");
 
@@ -365,7 +367,84 @@ router.get("/:id", validatorGetDeliveryNote, getDeliveryNote);
  *         description: Error del servidor
  */
 
-router.put("/:id", validatorCreateDeliveryNote, updateDeliveryNote);
+router.put("/:id", validatorUpdateDeliveryNote, updateDeliveryNote);
+
+/**
+ * @swagger
+ * /api/deliverynote/archived:
+ *   get:
+ *     summary: Obtener albaranes archivados
+ *     tags: [DeliveryNotes]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: projectId
+ *         schema:
+ *           type: string
+ *         description: Filtrar por proyecto
+ *       - in: query
+ *         name: clientId
+ *         schema:
+ *           type: string
+ *         description: Filtrar por cliente
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [draft, pending, signed, cancelled]
+ *         description: Filtrar por estado
+ *     responses:
+ *       200:
+ *         description: Lista de albaranes archivados
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 deliveryNotes:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/DeliveryNote'
+ *       500:
+ *         description: Error del servidor
+ */
+router.get("/archived", getArchivedDeliveryNotes);
+
+/**
+ * @swagger
+ * /api/deliverynote/restore/{id}:
+ *   put:
+ *     summary: Restaurar un albarán archivado
+ *     tags: [DeliveryNotes]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID del albarán
+ *     responses:
+ *       200:
+ *         description: Albarán restaurado exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 deliveryNote:
+ *                   $ref: '#/components/schemas/DeliveryNote'
+ *                 message:
+ *                   type: string
+ *       404:
+ *         description: Albarán archivado no encontrado
+ *       500:
+ *         description: Error del servidor
+ */
+
+router.put("/restore/:id", validatorGetDeliveryNote, restoreDeliveryNote);
 
 /**
  * @swagger
@@ -405,6 +484,7 @@ router.put("/:id", validatorCreateDeliveryNote, updateDeliveryNote);
  *       500:
  *         description: Error del servidor
  */
+
 
 router.delete("/:id", validatorGetDeliveryNote, deleteDeliveryNote);
 

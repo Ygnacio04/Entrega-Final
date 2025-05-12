@@ -4,7 +4,7 @@ const { encrypt, compare } = require("../utils/handlePassword");
 const { handleHttpError } = require("../utils/handleHttpError");
 const uploadToPinata = require("../utils/uploadToPinata");
 const { usersModel } = require("../models");
-const {sendEmail, sendVerificationEmail, sendPasswordResetEmail, sendInvitationEmail } = require("./utils/handleEmailSender");
+const {sendEmail, sendVerificationEmail, sendPasswordResetEmail, sendInvitationEmail } = require("../utils/handleEmailSender");
 
 
 // Generador de código de verificación
@@ -575,40 +575,39 @@ const registerCtrl = async (req, res) => {
 
     // Actualizar logo
     const uploadLogo = async (req, res) => {
-
-        try {
-            const user = req.user;
-            console.log(user);
-            if (!req.file) {
-                return handleHttpError(res, "NO_FILE_PROVIDED", 400);
-            }
-
-            const buffer = req.file.buffer;
-            const originalname = req.file.originalname;
-            const file = {
-                buffer: buffer,
-                originalname: originalname
-            };
-            console.log(file);
-            const { IpfsHash } = await uploadToPinata(file, originalname);
-
-            const updatedUser = await usersModel.findByIdAndUpdate(user._id, {
-                $set: { profilePicture: `${process.env.PINATA_GATEWAY}/${IpfsHash}` }
-            }, { new: true });
-
-            if (!updatedUser) {
-                return handleHttpError(res, "USER_NOT_FOUND", 404);
-            }
-
-            res.send({
-                message: "Logo actualizado",
-                profilePicture: updatedUser.profilePicture
-            });
-        } catch (err) {
-            console.log(err);
-            handleHttpError(res, "ERROR_UPDATE_LOGO");
+    try {
+        const user = req.user;
+        console.log(user);
+        if (!req.file) {
+            return handleHttpError(res, "NO_FILE_PROVIDED", 400);
         }
-    };
+
+        const buffer = req.file.buffer;
+        const originalname = req.file.originalname;
+        const file = {
+            buffer: buffer,
+            originalname: originalname
+        };
+        console.log(file);
+        const { IpfsHash } = await uploadToPinata(file, originalname);
+
+        const updatedUser = await usersModel.findByIdAndUpdate(user._id, {
+            $set: { profilePicture: `${process.env.PINATA_GATEWAY}/${IpfsHash}` }
+        }, { new: true });
+
+        if (!updatedUser) {
+            return handleHttpError(res, "USER_NOT_FOUND", 404);
+        }
+
+        res.send({
+            message: "Logo actualizado",
+            profilePicture: updatedUser.profilePicture
+        });
+    } catch (err) {
+        console.log(err);
+        handleHttpError(res, "ERROR_UPDATE_LOGO");
+    }
+};
 
     module.exports = {
         registerCtrl,

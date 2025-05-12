@@ -1,3 +1,4 @@
+
 const axios = require("axios");
 const FormData = require("form-data");
 const fs = require("fs");
@@ -26,7 +27,10 @@ async function uploadToPinata(file, fileName) {
         const formData = new FormData();
         
         // Agregar el archivo al FormData desde el archivo temporal
-        formData.append('file', fs.createReadStream(tempFilePath), fileName);
+        formData.append('file', fs.createReadStream(tempFilePath), {
+            filename: fileName,
+            contentType: file.mimetype
+        });
         
         // Agregar los metadatos
         const metadata = JSON.stringify({
@@ -39,20 +43,28 @@ async function uploadToPinata(file, fileName) {
         });
         formData.append('pinataOptions', options);
         
-        // Enviar la petición a Pinata
-        const response = await fetch(url, {
-            
-            method: 'POST',
-            body: formData,
-            headers: {
-                'pinata_api_key': pinataApiKey,
-                'pinata_secret_api_key': pinataSecretApiKey
-            }
+        // Configurar los headers para la petición
+        const headers = {
+            ...formData.getHeaders(),
+            'pinata_api_key': pinataApiKey,
+            'pinata_secret_api_key': pinataSecretApiKey
+        };
+        
+        // Enviar la petición a Pinata usando axios
+        const response = await axios.post(url, formData, {
+            headers: headers,
+            maxContentLength: Infinity,
+            maxBodyLength: Infinity
         });
-        const responseData = response.json();
-        return responseData;
+        
+        // Eliminar el archivo temporal después de enviarlo
+        if (fs.existsSync(tempFilePath)) {
+            fs.unlinkSync(tempFilePath);
+        }
+        
+        return response.data;
     } catch (error) {
-        console.error('Error al subir archivo a Pinata:', error);
+        console.error('Error al subir archivo a Pinata:', error.message);
         
         // Si hay un error, asegurarse de limpiar archivos temporales si existen
         try {
