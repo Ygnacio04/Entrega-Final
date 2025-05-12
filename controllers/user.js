@@ -4,7 +4,7 @@ const { encrypt, compare } = require("../utils/handlePassword");
 const { handleHttpError } = require("../utils/handleHttpError");
 const uploadToPinata = require("../utils/uploadToPinata");
 const { usersModel } = require("../models");
-const { sendVerificationEmail, sendPasswordResetEmail, sendInvitationEmail } = require("../utils/handleEmailSender");
+const { sendEmail  } = require("../utils/handleEmailSender");
 
 // Generador de código de verificación
 const generateVerificationCode = () => Math.floor(100000 + Math.random() * 900000).toString();

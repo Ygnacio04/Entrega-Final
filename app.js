@@ -59,30 +59,6 @@ app.get("/test-slack-error", (req, res, next) => {
   }
 });
 
-//Pruebas de correo electrónico
-app.get("/test-email", async (req, res) => {
-  try {
-    // Enviar un correo de prueba a la dirección que especifiques
-    const testEmail = "i810ag04@gmail.com"; // Cambia esto a tu email real para la prueba
-    const testCode = "123456"; // Código de prueba
-    
-    const info = await sendVerificationEmail(testEmail, testCode);
-    
-    res.status(200).json({
-      success: true,
-      message: "Correo de prueba enviado correctamente",
-      messageId: info.messageId
-    });
-  } catch (error) {
-    console.error("Error al enviar correo de prueba:", error);
-    res.status(500).json({
-      success: false,
-      message: "Error al enviar correo de prueba",
-      error: error.message
-    });
-  }
-});
-
 app.use(errorHandler);
 
 // Middleware para manejo de errores 404
