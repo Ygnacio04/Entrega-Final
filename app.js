@@ -4,7 +4,6 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const path = require("path");
 const swaggerUI = require("swagger-ui-express");
-const swaggerJsDoc = require("swagger-jsdoc");
 
 dotenv.config();
 
@@ -25,32 +24,6 @@ mongoose
   })
 
 // Configuración de Swagger
-const swaggerOptions = {
-  definition: {
-    openapi: "3.0.0",
-    info: {
-      title: "API de Gestión de Albaranes",
-      version: "1.0.0",
-      description: "API para la gestión de albaranes entre clientes y proveedores"
-    },
-    servers: [
-      {
-        url: process.env.PUBLIC_URL || "http://localhost:3000"
-      }
-    ],
-    components: {
-      securitySchemes: {
-        bearerAuth: {
-          type: "http",
-          scheme: "bearer",
-          bearerFormat: "JWT"
-        }
-      }
-    }
-  },
-  apis: ["./routes/*.js"]
-};
-
 const swaggerDocs = require('./swagger');
 app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(swaggerDocs));
 
