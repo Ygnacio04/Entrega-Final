@@ -2,22 +2,22 @@
 PORT = 3000
 
 # URI de conexión a MongoDB
-DB_URI = mongodb+srv://usuario:contraseña@tucluster.mongodb.net/tuBaseDeDatos
+DB_URI = mongodb+srv://usuario:contraseña@cluster.mongodb.net/BaseDeDatos
 
 # URL pública de la API
 PUBLIC_URL = http://localhost:3000
 
 # Claves de Pinata para IPFS
-PINATA_API_KEY = tu_api_key_de_pinata
-PINATA_SECRET = tu_secret_de_pinata
-PINATA_GATEWAY = tu_gateway_de_pinata
+PINATA_API_KEY = api_key_de_pinata
+PINATA_SECRET = secret_api_key_de_pinata
+PINATA_GATEWAY = gateway_de_pinata
 
 # JWT
 JWT_SECRET = tu_secret_para_jwt
 
 # Configuración de email
-EMAIL_USER = tu_email@dominio.com
-EMAIL_PASSWORD = tu_contraseña_o_app_password
+EMAIL_USER = email@dominio.com
+EMAIL_PASSWORD = contraseña
 
 # Webhook de Slack para notificaciones
-SLACK_WEBHOOK = https://hooks.slack.com/services/tu_webhook_de_slack
+SLACK_WEBHOOK = https://hooks.slack.com/services/webhook_de_slack

@@ -2,12 +2,24 @@ const nodemailer = require("nodemailer");
 const fs = require("fs");
 const path = require("path");
 
-// Configuración del transportador de correo
 const transporter = nodemailer.createTransport({
-  service: "gmail", // Cambiar según el servicio de correo a utilizar
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true, // true para puerto 465, false para otros puertos
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASSWORD
+  },
+  logger: true, // Activar logging
+  debug: true // incluir depuración
+});
+
+// Añadir verificación de conexión
+transporter.verify(function(error, success) {
+  if (error) {
+    console.log("Error en la verificación del transportador de correo:", error);
+  } else {
+    console.log("Servidor listo para enviar correos electrónicos");
   }
 });
 
