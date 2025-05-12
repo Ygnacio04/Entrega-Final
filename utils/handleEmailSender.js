@@ -10,6 +10,10 @@ const createTransporter = async () => {
     process.env.CLIENT_SECRET,
     process.env.REDIRECT_URI
   );
+  console.log(process.env.CLIENT_ID,
+    process.env.CLIENT_SECRET,
+    process.env.REDIRECT_URI );
+    
   oauth2Client.setCredentials({
     refresh_token: process.env.REFRESH_TOKEN
   });

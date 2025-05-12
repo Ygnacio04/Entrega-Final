@@ -1,8 +1,12 @@
-@baseUrl = http://localhost:3000/api/auth
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2VhZTljYjU4NDI2NGQ4ZTJjZGM4Y2IiLCJyb2xlIjoidXNlciIsImVtYWlsIjoianVhbi5wZXJlekBleGFtcGxlLmNvbSIsImlhdCI6MTc0MzQ0ODgxNiwiZXhwIjoxNzQzNTM1MjE2fQ.iLTde8uqtaFttB_Vi49JXHXf93HTdTUCRE6pS51oCqA
+@baseUrl = http://localhost:3000/api
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODIyMmE5NmJlNjlmNTMyZjEwMTE2YWQiLCJyb2xlIjoidXNlciIsImVtYWlsIjoiaTgxMGFnMDRAZ21haWwuY29tIiwiaWF0IjoxNzQ3MDY5NTkwLCJleHAiOjE3NDcxNTU5OTB9.lmy_7vDjsEgA7yo_n0pmXy8h5pUdRa0pPtsXMiSZ0j8
+
+###############################################
+#            AUTENTICACIÓN DE USUARIOS       #
+###############################################
 
 ### 1. Registro de usuario
-POST {{baseUrl}}/register
+POST {{baseUrl}}/user/register
 Content-Type: application/json
 
 {
@@ -13,16 +17,17 @@ Content-Type: application/json
 }
 
 ### 2. Verificación de email (tras recibir código)
-POST {{baseUrl}}/verify-email
+POST {{baseUrl}}/user/verify-email
 Content-Type: application/json
 
 {
   "email": "juan.perez@example.com",
-  "verificationCode": "886701"
+  "verificationCode": "123456"
 }
 
 ### 3. Login de usuario
-POST {{baseUrl}}/login
+# Ejecutar este request para obtener el token que se usará en el resto de requests
+POST {{baseUrl}}/user/login
 Content-Type: application/json
 
 {
@@ -31,11 +36,11 @@ Content-Type: application/json
 }
 
 ### 4. Obtener datos del usuario actual
-GET {{baseUrl}}/me
+GET {{baseUrl}}/user/me
 Authorization: Bearer {{token}}
 
 ### 5. Actualizar datos de usuario (onboarding)
-PUT {{baseUrl}}/onboarding
+PUT {{baseUrl}}/user/onboarding
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
@@ -55,7 +60,7 @@ Content-Type: application/json
 }
 
 ### 6. Solicitar recuperación de contraseña
-POST {{baseUrl}}/forgot-password
+POST {{baseUrl}}/user/forgot-password
 Content-Type: application/json
 
 {
@@ -63,16 +68,16 @@ Content-Type: application/json
 }
 
 ### 7. Restablecer contraseña
-POST {{baseUrl}}/reset-password
+POST {{baseUrl}}/user/reset-password
 Content-Type: application/json
 
 {
-  "token": "557889",
+  "token": "123456",
   "newPassword": "NewPassword456"
 }
 
 ### 8. Subir logo de perfil
-PATCH {{baseUrl}}/logo
+PATCH {{baseUrl}}/user/logo
 Authorization: Bearer {{token}}
 Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
 
@@ -83,127 +88,314 @@ Content-Type: image/png
 < ./logo.png
 ------WebKitFormBoundary7MA4YWxkTrZu0gW--
 
-//INVITACIONES
-@invitationId = 67eaeb54584264d8e2cdc8de
-@invitatorToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N2VhZWI1NDU4NDI2NGQ4ZTJjZGM4ZGUiLCJyb2xlIjoidXNlciIsImVtYWlsIjoiam9yZ2UuYWxvbnNvQGV4YW1wbGUuY29tIiwiaWF0IjoxNzQzNDQ4OTM3LCJleHAiOjE3NDM1MzUzMzd9.vrqcqKiOJXlb2gubL7vmm5I-BP7b4nKrFSkVqZAznYE
-### 9. Registro de usuario
-POST {{baseUrl}}/register
+###############################################
+#             GESTIÓN DE INVITACIONES        #
+###############################################
+
+### 9. Registro de un segundo usuario para invitaciones
+POST {{baseUrl}}/user/register
 Content-Type: application/json
 
 {
-  "firstName": "Jorge",
-  "lastName": "Alonso",
-  "email": "jorge.alonso@example.com",
+  "firstName": "Ana",
+  "lastName": "García",
+  "email": "ana.garcia@example.com",
   "password": "Password123"
 }
 
-### 10. Verificación de email (tras recibir código)
-POST {{baseUrl}}/verify-email
-Content-Type: application/json
-
-{
-  "email": "jorge.alonso@example.com",
-  "verificationCode": "522670"
-}
-
-### 11. Login de usuario
-POST {{baseUrl}}/login
-Content-Type: application/json
-
-{
-  "email": "jorge.alonso@example.com",
-  "password": "Password123"
-}
-
-### 12. Obtener invitaciones recibidas
-POST {{baseUrl}}/invitations/send
+### 10. Enviar invitación a un usuario
+POST {{baseUrl}}/user/invitations/send
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "email": "juan.perez@example.com",
+  "email": "ana.garcia@example.com",
   "role": "user"
 }
 
-### 13. Obtener invitaciones recibidas
-GET {{baseUrl}}/invitations/received
+### 11. Obtener invitaciones recibidas
+GET {{baseUrl}}/user/invitations/received
 Authorization: Bearer {{token}}
 
-### 14. Obtener invitaciones enviadas
-GET {{baseUrl}}/invitations/sent
+### 12. Obtener invitaciones enviadas
+GET {{baseUrl}}/user/invitations/sent
 Authorization: Bearer {{token}}
 
-### 15. Aceptar una invitación
-//No conseguido
-PUT {{baseUrl}}/invitations/accept/{{invitationId}}
+### 13. Aceptar una invitación
+# Para probar esto, primero hacer login con el segundo usuario y obtener su token
+PUT {{baseUrl}}/user/invitations/accept/{{invitationId}}
 Authorization: Bearer {{token}}
 
-### 16. Rechazar una invitación
-//No conseguido
-PUT {{baseUrl}}/invitations/reject/{{invitationId}}
+### 14. Rechazar una invitación
+PUT {{baseUrl}}/user/invitations/reject/{{invitationId}}
 Authorization: Bearer {{token}}
 
-### 17. Cancelar una invitación enviada
-//No conseguido
-DELETE {{baseUrl}}/invitations/cancel/{{invitationId}}
+### 15. Cancelar una invitación enviada
+DELETE {{baseUrl}}/user/invitations/cancel/{{invitationId}}
 Authorization: Bearer {{token}}
 
-### 18. Enviar invitación con datos incompletos (para probar errores)
-//No conseguido
-POST {{baseUrl}}/invitations/send
+###############################################
+#             GESTIÓN DE CLIENTES            #
+###############################################
+
+### 16. Crear un nuevo cliente
+POST {{baseUrl}}/client
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "email": ""
+  "name": "Empresa Cliente S.L.",
+  "nif": "B87654321",
+  "address": {
+    "street": "Calle Comercial",
+    "number": 42,
+    "postal": 28002,
+    "city": "Madrid"
+  },
+  "email": "contacto@empresa-cliente.com",
+  "phone": "912345678"
 }
 
-### 19. Intentar aceptar una invitación no existente (para probar errores)
-//No conseguido
-PUT {{baseUrl}}/invitations/accept/5f9a3b5c1d2e3f4a5b6c7d8e
+### 17. Obtener todos los clientes
+GET {{baseUrl}}/client
 Authorization: Bearer {{token}}
 
-//FIN INVITACIONES
-
-
-//DELETES
-### 10. Eliminar usuario (soft delete)
-DELETE {{baseUrl}}/delete
+### 18. Obtener un cliente específico
+GET {{baseUrl}}/client/{{clientId}}
 Authorization: Bearer {{token}}
 
-### 11. Eliminar usuario (hard delete)
-DELETE {{baseUrl}}/delete?soft=false
+### 19. Actualizar un cliente
+PUT {{baseUrl}}/client/{{clientId}}
 Authorization: Bearer {{token}}
-
-
-
-//PRUEBAS DE ERRORES
-### 12. Login con credenciales incorrectas (para probar errores)
-POST {{baseUrl}}/login
 Content-Type: application/json
 
 {
-  "email": "juan.perez@example.com",
-  "password": "PasswordIncorrecto"
+  "name": "Empresa Cliente Actualizada S.L.",
+  "email": "nuevo.contacto@empresa-cliente.com",
+  "phone": "913456789"
 }
 
-### 13. Verificar email con código incorrecto (para probar errores)
-POST {{baseUrl}}/verify-email
+### 20. Actualización parcial de cliente
+PATCH {{baseUrl}}/client/{{clientId}}
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "email": "juan.perez@example.com",
-  "verificationCode": "000000"
+  "phone": "914567890"
 }
 
-### 14. Intentar acceder a ruta protegida sin token (para probar errores)
-GET {{baseUrl}}/me
+### 21. Archivar un cliente (soft delete)
+DELETE {{baseUrl}}/client/{{clientId}}
+Authorization: Bearer {{token}}
 
-### 15. Intentar recuperar contraseña con email inexistente (para probar errores)
-POST {{baseUrl}}/forgot-password
+### 22. Obtener clientes archivados
+GET {{baseUrl}}/client/archived
+Authorization: Bearer {{token}}
+
+### 23. Restaurar un cliente archivado
+PUT {{baseUrl}}/client/restore/{{clientId}}
+Authorization: Bearer {{token}}
+
+### 24. Eliminar permanentemente un cliente (hard delete)
+DELETE {{baseUrl}}/client/{{clientId}}?hard=true
+Authorization: Bearer {{token}}
+
+###############################################
+#             GESTIÓN DE PROYECTOS           #
+###############################################
+
+### 25. Crear un nuevo proyecto
+POST {{baseUrl}}/project
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "email": "noexiste@example.com"
+  "name": "Desarrollo Web Corporativo",
+  "description": "Creación de sitio web responsive con área de clientes",
+  "client": "{{clientId}}",
+  "startDate": "2023-05-01T00:00:00.000Z",
+  "status": "in-progress"
 }
 
+### 26. Obtener todos los proyectos
+GET {{baseUrl}}/project
+Authorization: Bearer {{token}}
+
+### 27. Filtrar proyectos por cliente
+GET {{baseUrl}}/project?clientId={{clientId}}
+Authorization: Bearer {{token}}
+
+### 28. Obtener un proyecto específico
+GET {{baseUrl}}/project/{{projectId}}
+Authorization: Bearer {{token}}
+
+### 29. Actualizar un proyecto
+PUT {{baseUrl}}/project/{{projectId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Desarrollo Web Corporativo 2.0",
+  "description": "Creación de sitio web responsive con área de clientes y blog",
+  "status": "completed",
+  "endDate": "2023-07-15T00:00:00.000Z",
+  "client": "{{clientId}}"
+}
+
+### 30. Archivar un proyecto (soft delete)
+DELETE {{baseUrl}}/project/{{projectId}}
+Authorization: Bearer {{token}}
+
+### 31. Obtener proyectos archivados
+GET {{baseUrl}}/project/archived
+Authorization: Bearer {{token}}
+
+### 32. Restaurar un proyecto archivado
+PUT {{baseUrl}}/project/restore/{{projectId}}
+Authorization: Bearer {{token}}
+
+### 33. Eliminar permanentemente un proyecto (hard delete)
+DELETE {{baseUrl}}/project/{{projectId}}?hard=true
+Authorization: Bearer {{token}}
+
+###############################################
+#             GESTIÓN DE ALBARANES           #
+###############################################
+
+### 34. Crear un nuevo albarán
+POST {{baseUrl}}/deliverynote
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "project": "{{projectId}}",
+  "date": "2023-06-15T00:00:00.000Z",
+  "workedHours": [
+    {
+      "person": "Juan Pérez",
+      "hours": 8,
+      "date": "2023-06-15T09:00:00.000Z",
+      "description": "Desarrollo frontend",
+      "hourlyRate": 25
+    },
+    {
+      "person": "Ana García",
+      "hours": 6,
+      "date": "2023-06-15T10:00:00.000Z",
+      "description": "Diseño UX/UI",
+      "hourlyRate": 30
+    }
+  ],
+  "materials": [
+    {
+      "name": "Licencia de software",
+      "quantity": 1,
+      "price": 150,
+      "description": "Licencia anual"
+    },
+    {
+      "name": "Dominio web",
+      "quantity": 1,
+      "price": 15,
+      "description": "Renovación anual"
+    }
+  ],
+  "observations": "Entrega parcial del proyecto, pendiente de aprobación"
+}
+
+### 35. Obtener todos los albaranes
+GET {{baseUrl}}/deliverynote
+Authorization: Bearer {{token}}
+
+### 36. Filtrar albaranes por proyecto
+GET {{baseUrl}}/deliverynote?projectId={{projectId}}
+Authorization: Bearer {{token}}
+
+### 37. Filtrar albaranes por cliente
+GET {{baseUrl}}/deliverynote?clientId={{clientId}}
+Authorization: Bearer {{token}}
+
+### 38. Filtrar albaranes por estado
+GET {{baseUrl}}/deliverynote?status=pending
+Authorization: Bearer {{token}}
+
+### 39. Obtener un albarán específico
+GET {{baseUrl}}/deliverynote/{{deliveryNoteId}}
+Authorization: Bearer {{token}}
+
+### 40. Actualizar un albarán
+PUT {{baseUrl}}/deliverynote/{{deliveryNoteId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "project": "{{projectId}}",
+  "observations": "Entrega parcial del proyecto, aprobada por el cliente",
+  "status": "pending",
+  "workedHours": [
+    {
+      "person": "Juan Pérez",
+      "hours": 10,
+      "date": "2023-06-15T09:00:00.000Z",
+      "description": "Desarrollo frontend y backend",
+      "hourlyRate": 25
+    }
+  ]
+}
+
+### 41. Obtener PDF de un albarán
+GET {{baseUrl}}/deliverynote/pdf/{{deliveryNoteId}}
+Authorization: Bearer {{token}}
+
+### 42. Firmar un albarán
+POST {{baseUrl}}/deliverynote/sign/{{deliveryNoteId}}
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="signature"; filename="firma.png"
+Content-Type: image/png
+
+< ./firma.png
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="signer"
+
+Antonio Cliente
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### 43. Archivar un albarán (soft delete)
+DELETE {{baseUrl}}/deliverynote/{{deliveryNoteId}}
+Authorization: Bearer {{token}}
+
+### 44. Eliminar permanentemente un albarán (hard delete)
+DELETE {{baseUrl}}/deliverynote/{{deliveryNoteId}}?hard=true
+Authorization: Bearer {{token}}
+
+###############################################
+#             OTROS ENDPOINTS                #
+###############################################
+
+### 45. Documentación Swagger
+GET {{baseUrl}}-docs
+# Este endpoint muestra la documentación Swagger en el navegador
+
+### 46. Estado de la API
+GET {{baseUrl}}/
+# Este endpoint muestra si la API está funcionando correctamente
+
+### 47. Test de error para Slack
+GET {{baseUrl}}/test-slack-error
+Authorization: Bearer {{token}}
+# Este endpoint fuerza un error para probar la notificación a Slack
+
+###############################################
+#             GESTIÓN DE CUENTA USUARIO      #
+###############################################
+
+### 48. Eliminar usuario (soft delete)
+DELETE {{baseUrl}}/user/delete
+Authorization: Bearer {{token}}
+
+### 49. Eliminar usuario permanentemente (hard delete)
+DELETE {{baseUrl}}/user/delete?soft=false
+Authorization: Bearer {{token}}
