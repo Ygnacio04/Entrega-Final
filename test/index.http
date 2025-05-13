@@ -1,4 +1,5 @@
 @baseUrl = http://localhost:3000/api
+@baseUrlRoot = http://localhost:3000
 @token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODIyNzdkMzIxNDZkZjY1ZWZiN2Y5YTMiLCJyb2xlIjoidXNlciIsImVtYWlsIjoiaTgxMGFnMDRAZ21haWwuY29tIiwiaWF0IjoxNzQ3MDkxODEzLCJleHAiOjE3NDcxNzgyMTN9.BiAuq2ItbuREL5zA2dc7LHsg9o48hUn2dhZ2EIzQyxM
 @clientId = 682284108e0e183d73330a44
 @projectId = 682284eb8e0e183d73330a72
@@ -404,11 +405,12 @@ GET {{baseUrl}}-docs
 # Este endpoint muestra la documentación Swagger en el navegador
 
 ### 46. Estado de la API
-GET {{baseUrl}}/
+GET {{baseUrlRoot}}/
+#Quitar el /api del baseUrl => localhost:3000/api
 # Este endpoint muestra si la API está funcionando correctamente
 
 ### 47. Test de error para Slack
-GET {{baseUrl}}/test-slack-error
+GET {{baseUrlRoot}}/test-slack-error
 Authorization: Bearer {{token}}
 # Este endpoint fuerza un error para probar la notificación a Slack
 

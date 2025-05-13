@@ -211,6 +211,48 @@ router.get("/", getDeliveryNotes);
 
 /**
  * @swagger
+ * /api/deliverynote/archived:
+ *   get:
+ *     summary: Obtener albaranes archivados
+ *     tags: [DeliveryNotes]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: projectId
+ *         schema:
+ *           type: string
+ *         description: Filtrar por proyecto
+ *       - in: query
+ *         name: clientId
+ *         schema:
+ *           type: string
+ *         description: Filtrar por cliente
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [draft, pending, signed, cancelled]
+ *         description: Filtrar por estado
+ *     responses:
+ *       200:
+ *         description: Lista de albaranes archivados
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 deliveryNotes:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/DeliveryNote'
+ *       500:
+ *         description: Error del servidor
+ */
+router.get("/archived", getArchivedDeliveryNotes);
+
+/**
+ * @swagger
  * /api/deliverynote/pdf/{id}:
  *   get:
  *     summary: Obtener PDF de un albarán
@@ -369,47 +411,7 @@ router.get("/:id", validatorGetDeliveryNote, getDeliveryNote);
 
 router.put("/:id", validatorUpdateDeliveryNote, updateDeliveryNote);
 
-/**
- * @swagger
- * /api/deliverynote/archived:
- *   get:
- *     summary: Obtener albaranes archivados
- *     tags: [DeliveryNotes]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: projectId
- *         schema:
- *           type: string
- *         description: Filtrar por proyecto
- *       - in: query
- *         name: clientId
- *         schema:
- *           type: string
- *         description: Filtrar por cliente
- *       - in: query
- *         name: status
- *         schema:
- *           type: string
- *           enum: [draft, pending, signed, cancelled]
- *         description: Filtrar por estado
- *     responses:
- *       200:
- *         description: Lista de albaranes archivados
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 deliveryNotes:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/DeliveryNote'
- *       500:
- *         description: Error del servidor
- */
-router.get("/archived", getArchivedDeliveryNotes);
+
 
 /**
  * @swagger

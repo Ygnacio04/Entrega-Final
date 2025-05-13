@@ -262,7 +262,7 @@ const getArchivedDeliveryNotes = async (req, res) => {
                 { company: user.company?._id }
             ]
         };
-
+        
         // Filtrar por proyecto
         if (projectId) {
             query.project = projectId;
@@ -332,10 +332,32 @@ const restoreDeliveryNote = async (req, res) => {
         if (!deliveryNote) {
             return handleHttpError(res, "ARCHIVED_DELIVERY_NOTE_NOT_FOUND", 404);
         }
-
-        // Restaurar albarán
+        // Intentar restaurar usando el método del plugin
         await deliveryNotesModel.restore({ _id: id });
         
+        // Verificar explícitamente que ya no está en los documentos eliminados
+        const stillDeleted = await deliveryNotesModel.findOneDeleted({ _id: id });
+        
+        if (stillDeleted) {
+            console.log("¡Alerta! El documento sigue marcado como eliminado después de restaurar");
+            
+            // Intento alternativo: actualizar directamente los campos de borrado
+            await deliveryNotesModel.updateOne(
+                { _id: id },
+                { 
+                    $set: { deleted: false },
+                    $unset: { deletedAt: "" }
+                }
+            );
+            
+            // Verificar nuevamente
+            const stillDeletedAfterUpdate = await deliveryNotesModel.findOneDeleted({ _id: id });
+            if (stillDeletedAfterUpdate) {
+                return handleHttpError(res, "ERROR_RESTORE_DELIVERY_NOTE", 500);
+            }
+        }
+        
+        // Obtener el albarán restaurado
         const restoredDeliveryNote = await deliveryNotesModel.findById(id)
             .populate({
                 path: 'project',
@@ -346,12 +368,17 @@ const restoreDeliveryNote = async (req, res) => {
             .populate('createdBy', 'firstName lastName email company')
             .populate('company', 'company');
 
+        console.log("Estado después de restaurar:", {
+            id: restoredDeliveryNote._id,
+            deleted: restoredDeliveryNote.deleted,
+        });
+
         res.send({ 
             deliveryNote: restoredDeliveryNote, 
             message: "DELIVERY_NOTE_RESTORED" 
         });
     } catch (error) {
-        console.log(error);
+        console.log("Error completo en restoreDeliveryNote:", error);
         handleHttpError(res, "ERROR_RESTORE_DELIVERY_NOTE");
     }
 };
