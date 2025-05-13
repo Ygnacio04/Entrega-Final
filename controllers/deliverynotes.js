@@ -463,7 +463,7 @@ const signDeliveryNote = async (req, res) => {
         };
         
         const { IpfsHash } = await uploadToPinata(file, originalname);
-        const signatureUrl = `${process.env.PINATA_GATEWAY}/${IpfsHash}`;
+        const signatureUrl = `https://${process.env.PINATA_GATEWAY}/ipfs/${IpfsHash}`;
 
         // Actualizar el albarán con la firma
         const updatedDeliveryNote = await deliveryNotesModel.findByIdAndUpdate(
@@ -533,9 +533,7 @@ const getDeliveryNotePdf = async (req, res) => {
         }
 
         // Si el albarán ya tiene un PDF cargado en IPFS
-        if (deliveryNote.pdfUrl) {
-            console.log("PDF disponible en IPFS:", deliveryNote.pdfUrl);
-            
+        if (deliveryNote.pdfUrl) {            
             // Si se solicita formato JSON o estamos en un cliente que probablemente no maneje redirecciones (auto)
             if (format === 'json' || (format === 'auto' && req.get('User-Agent')?.includes('PostmanRuntime') || req.get('User-Agent')?.includes('Visual Studio Code'))) {
                 return res.json({
@@ -772,17 +770,13 @@ const generateAndUploadPdf = async (deliveryNote) => {
         if (!fs.existsSync(tempDir)) {
             fs.mkdirSync(tempDir, { recursive: true });
         }
-        
-        // Nombre del archivo temporal
-        const tempFilePath = path.join(tempDir, `${uuidv4()}.pdf`);
-        console.log("Archivo temporal:", tempFilePath);
+
+        const tempFilePath = path.join(tempDir, `${uuidv4()}-albaran-${deliveryNote.number}.pdf`);
         
         // Crear el PDF
         const doc = new PDFDocument({ margin: 50 });
         const writeStream = fs.createWriteStream(tempFilePath);
-        
-        // Modificar la función generatePdfContent para este uso específico
-        // para evitar problemas con las imágenes de firma
+
         const generatePdfForUpload = (doc, deliveryNote) => {
             // Encabezado con datos de la empresa
             const company = deliveryNote.company?.company || deliveryNote.createdBy?.company || {};
@@ -939,9 +933,7 @@ const generateAndUploadPdf = async (deliveryNote) => {
             generatePdfForUpload(doc, deliveryNote);
             doc.end();
         });
-        
-        console.log("PDF generado correctamente. Preparando para subir a IPFS...");
-        
+                
         // Leer el archivo para subir a IPFS
         const fileBuffer = fs.readFileSync(tempFilePath);
         const file = {
@@ -949,17 +941,13 @@ const generateAndUploadPdf = async (deliveryNote) => {
             originalname: `albaran-${deliveryNote.number}.pdf`
         };
         
-        // Subir a IPFS
-        console.log("Subiendo PDF a IPFS...");
-        const pinataResult = await uploadToPinata(file, file.originalname);
-        console.log("Resultado de Pinata:", pinataResult);
-        
+        // Subir a IPFS 
+        const pinataResult = await uploadToPinata(file, file.originalname);        
         if (!pinataResult || !pinataResult.IpfsHash) {
             throw new Error("No se pudo obtener el hash IPFS de Pinata");
         }
         
-        const pdfUrl = `${process.env.PINATA_GATEWAY}/${pinataResult.IpfsHash}`;
-        console.log("PDF subido a IPFS con URL:", pdfUrl);
+        const pdfUrl = `http://${process.env.PINATA_GATEWAY}/ipfs/${pinataResult.IpfsHash}`;
         
         // Actualizar el albarán con la URL del PDF
         const updatedDeliveryNote = await deliveryNotesModel.findByIdAndUpdate(
@@ -967,12 +955,10 @@ const generateAndUploadPdf = async (deliveryNote) => {
             { pdfUrl: pdfUrl },
             { new: true }
         );
-        
-        console.log("Albarán actualizado con URL del PDF:", updatedDeliveryNote.pdfUrl);
-        
-        // Eliminar el archivo temporal
-        fs.unlinkSync(tempFilePath);
-        console.log("Archivo temporal eliminado");
+        try {
+            fs.unlinkSync(tempFilePath);
+        } catch (cleanupError) {
+        }
         
         return pdfUrl;
     } catch (error) {
