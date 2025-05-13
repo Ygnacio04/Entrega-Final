@@ -1,9 +1,9 @@
 @baseUrl = http://localhost:3000/api
 @baseUrlRoot = http://localhost:3000
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODIzMDMxZjM5YjUxYWY5ZGE5MjM1MTQiLCJyb2xlIjoidXNlciIsImVtYWlsIjoiaTgxMGFnMDRAZ21haWwuY29tIiwiaWF0IjoxNzQ3MTI5OTkxLCJleHAiOjE3NDcyMTYzOTF9.Wz8fi6RT8A7hK3OXtZaZ8MFJFLMDhJ9PX3KhLKqMxfM
-@clientId = 682304067902318a0c060f9a
-@projectId = 6823044c7902318a0c060fba
-@deliveryNoteId = 682315e27f05a30fa2197272
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODIzMzQ1N2U4OWY5NDYxNDcyYjQ3NjMiLCJyb2xlIjoidXNlciIsImVtYWlsIjoiaTgxMGFnMDRAZ21haWwuY29tIiwiaWF0IjoxNzQ3MTM3NjUyLCJleHAiOjE3NDcyMjQwNTJ9.vVPbtluE-76TmwMIHnTgxMZ9TE-SMphEBmqfPRuZojc
+@clientId = 682328b18e9ababa65944b44
+@projectId = 682329cc8e9ababa65944b62
+@deliveryNoteId = 68232a1e8e9ababa65944b7f
 
 ###############################################
 #            AUTENTICACIÓN DE USUARIOS       #
@@ -26,7 +26,7 @@ Content-Type: application/json
 
 {
   "email": "i810ag04@gmail.com",
-  "verificationCode": "284236"
+  "verificationCode": "348553"
 }
 
 ### 3. Login de usuario
@@ -96,8 +96,8 @@ Content-Type: image/png
 #             GESTIÓN DE INVITACIONES        #
 ###############################################
 
-@invitationId = 682303eb7902318a0c060f85
-@invitatorToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODIzMDMzYzM5YjUxYWY5ZGE5MjM1MWUiLCJyb2xlIjoidXNlciIsImVtYWlsIjoiaTIwYWcwNEBnbWFpbC5jb20iLCJpYXQiOjE3NDcxMjUxMDMsImV4cCI6MTc0NzIxMTUwM30.ZUxgXt_vXCLET6qCE-bivb-znCAgGYG1jqWQS3er3aw
+@invitationId = 682328628e9ababa65944b2a
+@invitatorToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODIzMjgzYThlOWFiYWJhNjU5NDRiMjMiLCJyb2xlIjoidXNlciIsImVtYWlsIjoiaTIwYWcwNEBnbWFpbC5jb20iLCJpYXQiOjE3NDcxMzQ1NTAsImV4cCI6MTc0NzIyMDk1MH0.kK4uMWIDeAD-HgeIMe7IZIaYPmWoHhLm3CZ90t6zfVU
 
 ### 9. Registro de un segundo usuario para invitaciones
 POST {{baseUrl}}/user/register
@@ -116,7 +116,7 @@ Content-Type: application/json
 
 {
   "email": "i20ag04@gmail.com",
-  "verificationCode": "129821"
+  "verificationCode": "173603"
 }
 
 ### 9.5. Login de usuario
@@ -422,7 +422,7 @@ Authorization: Bearer {{token}}
 
 ### 45. Documentación Swagger
 GET {{baseUrl}}-docs
-# Este endpoint muestra la documentación Swagger en el navegador
+#Documentación Swagger en el navegador
 
 ### 46. Estado de la API
 GET {{baseUrlRoot}}/

@@ -15,12 +15,7 @@ async function uploadToPinata(file, fileName) {
         // Usar los nombres de variables de entorno correctos
         const pinataApiKey = process.env.PINATA_API_KEY;
         const pinataSecretApiKey = process.env.SECRET_API_KEY;
-        
-        console.log("Credenciales de Pinata:", {
-            keyExists: !!pinataApiKey,
-            secretExists: !!pinataSecretApiKey
-        });
-        
+                
         if (!pinataApiKey || !pinataSecretApiKey) {
             throw new Error("Las credenciales de Pinata no están configuradas correctamente");
         }

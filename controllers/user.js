@@ -54,7 +54,6 @@ const registerCtrl = async (req, res) => {
                 to: req.email,
                 from: process.env.EMAIL
             }; await sendEmail(emailOptions);
-            console.log(`Correo de verificación enviado a ${req.email}`);
         } catch (emailError) {
             console.error(`Error al enviar correo de verificación: ${emailError}`);
         }
@@ -220,7 +219,6 @@ const forgotPasswordCtrl = async (req, res) => {
         // Enviar correo con token de recuperación
         try {
             await sendPasswordResetEmail(email, resetToken);
-            console.log(`Correo de recuperación enviado a ${email}`);
         } catch (emailError) {
             console.error(`Error al enviar correo de recuperación: ${emailError}`);
             // Podemos continuar aunque falle el email
@@ -665,7 +663,7 @@ const uploadLogo = async (req, res) => {
         }
 
         // Usar PINATA_GATEWAY del archivo .env
-        const profilePictureUrl = `${process.env.PINATA_GATEWAY}/${result.IpfsHash}`;
+        const profilePictureUrl = `https://${process.env.PINATA_GATEWAY}/ipfs/${result.IpfsHash}`;
 
         const updatedUser = await usersModel.findByIdAndUpdate(user._id, {
             $set: { profilePicture: profilePictureUrl }
