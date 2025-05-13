@@ -443,7 +443,7 @@ const acceptInvitationCtrl = async (req, res) => {
         }
 
         // Convertir el string invitationId a ObjectId para comparación segura
-        const invitationObjId = mongoose.Types.ObjectId(invitationId);
+        const invitationObjId = new mongoose.Types.ObjectId(invitationId);
 
         // Encontrar la invitación específica
         const invitation = user.receivedInvitations?.find(inv =>
@@ -545,7 +545,7 @@ const rejectInvitationCtrl = async (req, res) => {
         }
 
         // Convertir el string invitationId a ObjectId para comparación segura
-        const invitationObjId = mongoose.Types.ObjectId(invitationId);
+        const invitationObjId = new mongoose.Types.ObjectId(invitationId);
 
         // Encontrar la invitación específica
         const invitation = user.receivedInvitations?.find(inv =>
@@ -603,7 +603,7 @@ const cancelInvitationCtrl = async (req, res) => {
         }
         
         // Convertir el string invitationId a ObjectId para comparación segura
-        const invitationObjId = mongoose.Types.ObjectId(invitationId);
+        const invitationObjId = new mongoose.Types.ObjectId(invitationId);
         
         // Encontrar la invitación específica
         const invitation = user.sentInvitations?.find(inv => 

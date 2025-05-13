@@ -509,6 +509,7 @@ const getDeliveryNotePdf = async (req, res) => {
     try {
         const { id } = req.params;
         const user = req.user;
+        const format = req.query.format || 'auto'; // Formato de respuesta: pdf, json o auto (default)
 
         // Verificar que el albarán existe y pertenece al usuario o su compañía
         const deliveryNote = await deliveryNotesModel.findOne({
@@ -531,13 +532,34 @@ const getDeliveryNotePdf = async (req, res) => {
             return handleHttpError(res, "DELIVERY_NOTE_NOT_FOUND", 404);
         }
 
-        // Si el albarán ya tiene un PDF cargado en IPFS y está firmado
-        if (deliveryNote.pdfUrl && deliveryNote.status === 'signed') {
-            // Redirigir al PDF almacenado en IPFS
+        // Si el albarán ya tiene un PDF cargado en IPFS
+        if (deliveryNote.pdfUrl) {
+            console.log("PDF disponible en IPFS:", deliveryNote.pdfUrl);
+            
+            // Si se solicita formato JSON o estamos en un cliente que probablemente no maneje redirecciones (auto)
+            if (format === 'json' || (format === 'auto' && req.get('User-Agent')?.includes('PostmanRuntime') || req.get('User-Agent')?.includes('Visual Studio Code'))) {
+                return res.json({
+                    message: "PDF disponible en IPFS",
+                    pdfUrl: deliveryNote.pdfUrl,
+                    number: deliveryNote.number,
+                    status: deliveryNote.status
+                });
+            }
+            
+            // Si se solicita formato PDF o es un navegador (formato auto)
             return res.redirect(deliveryNote.pdfUrl);
         }
 
-        // Si no tiene PDF o no está firmado, generar PDF en tiempo real
+        // Si se solicita formato JSON pero no hay PDF en IPFS
+        if (format === 'json') {
+            return res.json({
+                message: "No hay PDF almacenado en IPFS para este albarán",
+                status: deliveryNote.status
+            });
+        }
+
+        // Si no tiene PDF, generamos uno en tiempo real
+        console.log("Generando PDF en tiempo real para albarán sin PDF en IPFS");
         const doc = new PDFDocument({ margin: 50 });
         
         // Configurar la respuesta
@@ -743,6 +765,8 @@ const generatePdfContent = (doc, deliveryNote) => {
  */
 const generateAndUploadPdf = async (deliveryNote) => {
     try {
+        console.log("Iniciando generación y carga de PDF para albarán:", deliveryNote._id);
+        
         // Crear directorio temporal si no existe
         const tempDir = path.join(__dirname, '../temp');
         if (!fs.existsSync(tempDir)) {
@@ -751,19 +775,172 @@ const generateAndUploadPdf = async (deliveryNote) => {
         
         // Nombre del archivo temporal
         const tempFilePath = path.join(tempDir, `${uuidv4()}.pdf`);
+        console.log("Archivo temporal:", tempFilePath);
         
         // Crear el PDF
         const doc = new PDFDocument({ margin: 50 });
         const writeStream = fs.createWriteStream(tempFilePath);
+        
+        // Modificar la función generatePdfContent para este uso específico
+        // para evitar problemas con las imágenes de firma
+        const generatePdfForUpload = (doc, deliveryNote) => {
+            // Encabezado con datos de la empresa
+            const company = deliveryNote.company?.company || deliveryNote.createdBy?.company || {};
+            const companyName = company.name || 'Empresa';
+            const companyAddress = company.address || {};
+            
+            // Datos del cliente
+            const client = deliveryNote.project?.client || {};
+            const clientName = client.name || 'Cliente';
+            const clientAddress = client.address || {};
+            
+            // Datos del proyecto
+            const project = deliveryNote.project || {};
+            const projectName = project.name || 'Proyecto';
+            
+            // Configurar el documento
+            doc.font('Helvetica-Bold')
+               .fontSize(18)
+               .text('ALBARÁN', { align: 'center' })
+               .moveDown();
+            
+            doc.fontSize(12)
+               .text(`Número: ${deliveryNote.number}`, { align: 'right' })
+               .text(`Fecha: ${new Date(deliveryNote.date).toLocaleDateString()}`, { align: 'right' })
+               .moveDown(0.5);
+            
+            // Información de la empresa
+            doc.font('Helvetica-Bold')
+               .text('EMPRESA:')
+               .font('Helvetica')
+               .text(companyName)
+               .text(`${companyAddress.street || ''} ${companyAddress.number || ''}, ${companyAddress.postal || ''} ${companyAddress.city || ''}`)
+               .moveDown();
+            
+            // Información del cliente
+            doc.font('Helvetica-Bold')
+               .text('CLIENTE:')
+               .font('Helvetica')
+               .text(clientName)
+               .text(`${clientAddress.street || ''} ${clientAddress.number || ''}, ${clientAddress.postal || ''} ${clientAddress.city || ''}`)
+               .text(`NIF: ${client.nif || ''}`)
+               .moveDown();
+            
+            // Información del proyecto
+            doc.font('Helvetica-Bold')
+               .text('PROYECTO:')
+               .font('Helvetica')
+               .text(projectName)
+               .text(project.description || '')
+               .moveDown(1.5);
+            
+            // Tabla de horas trabajadas
+            if (deliveryNote.workedHours && deliveryNote.workedHours.length > 0) {
+                doc.font('Helvetica-Bold')
+                   .text('HORAS TRABAJADAS:', { underline: true })
+                   .moveDown(0.5);
+                
+                // Encabezados de columna
+                const workedHoursTableTop = doc.y;
+                doc.font('Helvetica-Bold')
+                   .text('Persona', 50, workedHoursTableTop)
+                   .text('Fecha', 180, workedHoursTableTop)
+                   .text('Horas', 280, workedHoursTableTop)
+                   .text('Precio/Hora', 350, workedHoursTableTop)
+                   .text('Subtotal', 450, workedHoursTableTop)
+                   .moveDown();
+                
+                // Filas de datos
+                let y = doc.y;
+                deliveryNote.workedHours.forEach(entry => {
+                    doc.font('Helvetica')
+                       .text(entry.person, 50, y)
+                       .text(new Date(entry.date).toLocaleDateString(), 180, y)
+                       .text(entry.hours.toString(), 280, y)
+                       .text(`${entry.hourlyRate || 0}€`, 350, y)
+                       .text(`${(entry.hours * (entry.hourlyRate || 0)).toFixed(2)}€`, 450, y);
+                    y += 20;
+                });
+                
+                doc.moveDown(1.5);
+            }
+            
+            // Tabla de materiales
+            if (deliveryNote.materials && deliveryNote.materials.length > 0) {
+                doc.font('Helvetica-Bold')
+                   .text('MATERIALES:', { underline: true })
+                   .moveDown(0.5);
+                
+                // Encabezados de columna
+                const materialsTableTop = doc.y;
+                doc.font('Helvetica-Bold')
+                   .text('Material', 50, materialsTableTop)
+                   .text('Cantidad', 280, materialsTableTop)
+                   .text('Precio', 350, materialsTableTop)
+                   .text('Subtotal', 450, materialsTableTop)
+                   .moveDown();
+                
+                // Filas de datos
+                let y = doc.y;
+                deliveryNote.materials.forEach(material => {
+                    doc.font('Helvetica')
+                       .text(material.name, 50, y)
+                       .text(material.quantity.toString(), 280, y)
+                       .text(`${material.price || 0}€`, 350, y)
+                       .text(`${(material.quantity * (material.price || 0)).toFixed(2)}€`, 450, y);
+                    y += 20;
+                });
+                
+                doc.moveDown(1.5);
+            }
+            
+            // Total
+            doc.font('Helvetica-Bold')
+               .text(`TOTAL: ${deliveryNote.totalAmount.toFixed(2)}€`, { align: 'right' })
+               .moveDown(2);
+            
+            // Observaciones
+            if (deliveryNote.observations) {
+                doc.font('Helvetica-Bold')
+                   .text('OBSERVACIONES:')
+                   .font('Helvetica')
+                   .text(deliveryNote.observations)
+                   .moveDown(2);
+            }
+            
+            // Firma si está firmado
+            if (deliveryNote.status === 'signed' && deliveryNote.signature) {
+                doc.font('Helvetica-Bold')
+                   .text('FIRMADO POR:')
+                   .font('Helvetica')
+                   .text(deliveryNote.signature.signer)
+                   .text(`Fecha: ${new Date(deliveryNote.signature.date).toLocaleDateString()}`);
+                
+                // Para la versión de PDF que se sube a IPFS, solo agregamos texto
+                // indicando que se ha firmado electrónicamente
+                doc.moveDown(0.5)
+                   .text('(Firmado electrónicamente)', { align: 'center' });
+            } else {
+                // Espacio para firma si no está firmado
+                doc.moveDown()
+                   .font('Helvetica-Bold')
+                   .text('FIRMA DEL CLIENTE:')
+                   .moveDown(5)
+                   .font('Helvetica')
+                   .text('___________________________', { align: 'center' });
+            }
+        };
         
         // Esperar a que el PDF se genere completamente
         await new Promise((resolve, reject) => {
             writeStream.on('finish', resolve);
             writeStream.on('error', reject);
             doc.pipe(writeStream);
-            generatePdfContent(doc, deliveryNote);
+            generatePdfForUpload(doc, deliveryNote);
             doc.end();
         });
+        
+        console.log("PDF generado correctamente. Preparando para subir a IPFS...");
         
         // Leer el archivo para subir a IPFS
         const fileBuffer = fs.readFileSync(tempFilePath);
@@ -773,16 +950,29 @@ const generateAndUploadPdf = async (deliveryNote) => {
         };
         
         // Subir a IPFS
-        const { IpfsHash } = await uploadToPinata(file, file.originalname);
-        const pdfUrl = `${process.env.PINATA_GATEWAY}/${IpfsHash}`;
+        console.log("Subiendo PDF a IPFS...");
+        const pinataResult = await uploadToPinata(file, file.originalname);
+        console.log("Resultado de Pinata:", pinataResult);
+        
+        if (!pinataResult || !pinataResult.IpfsHash) {
+            throw new Error("No se pudo obtener el hash IPFS de Pinata");
+        }
+        
+        const pdfUrl = `${process.env.PINATA_GATEWAY}/${pinataResult.IpfsHash}`;
+        console.log("PDF subido a IPFS con URL:", pdfUrl);
         
         // Actualizar el albarán con la URL del PDF
-        await deliveryNotesModel.findByIdAndUpdate(deliveryNote._id, {
-            pdfUrl: pdfUrl
-        });
+        const updatedDeliveryNote = await deliveryNotesModel.findByIdAndUpdate(
+            deliveryNote._id,
+            { pdfUrl: pdfUrl },
+            { new: true }
+        );
+        
+        console.log("Albarán actualizado con URL del PDF:", updatedDeliveryNote.pdfUrl);
         
         // Eliminar el archivo temporal
         fs.unlinkSync(tempFilePath);
+        console.log("Archivo temporal eliminado");
         
         return pdfUrl;
     } catch (error) {
