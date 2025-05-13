@@ -380,7 +380,7 @@ Content-Type: application/json
 }
 
 ### 41. Obtener PDF de un albarán
-//No conseguido
+//No conseguido cuando está sin firmar
 GET {{baseUrl}}/deliverynote/pdf/{{deliveryNoteId}}?format=json
 Authorization: Bearer {{token}}
 
