@@ -739,12 +739,25 @@ const generatePdfContent = (doc, deliveryNote) => {
         
         // Añadir imagen de firma si existe
         if (deliveryNote.signature.image) {
-            const signaturePosition = doc.y + 10;
-            doc.image(deliveryNote.signature.image, {
-                fit: [200, 100],
-                align: 'center',
-                valign: 'center'
-            });
+            try {
+                // Usar una posición relativa para la firma
+                const currentY = doc.y + 10;
+                
+                // Intentar cargar y mostrar la imagen de la firma
+                doc.image(deliveryNote.signature.image, {
+                    fit: [200, 100],
+                    align: 'center',
+                    valign: 'center'
+                });
+                
+                console.log(`Firma insertada desde URL: ${deliveryNote.signature.image}`);
+            } catch (error) {
+                console.error(`Error al insertar imagen de firma: ${error.message}`);
+                
+                // Si falla la carga de la imagen, mostrar texto alternativo
+                doc.moveDown(0.5)
+                   .text('(Firmado electrónicamente)', { align: 'center' });
+            }
         }
     } else {
         // Espacio para firma si no está firmado
@@ -777,160 +790,16 @@ const generateAndUploadPdf = async (deliveryNote) => {
         const doc = new PDFDocument({ margin: 50 });
         const writeStream = fs.createWriteStream(tempFilePath);
 
-        const generatePdfForUpload = (doc, deliveryNote) => {
-            // Encabezado con datos de la empresa
-            const company = deliveryNote.company?.company || deliveryNote.createdBy?.company || {};
-            const companyName = company.name || 'Empresa';
-            const companyAddress = company.address || {};
-            
-            // Datos del cliente
-            const client = deliveryNote.project?.client || {};
-            const clientName = client.name || 'Cliente';
-            const clientAddress = client.address || {};
-            
-            // Datos del proyecto
-            const project = deliveryNote.project || {};
-            const projectName = project.name || 'Proyecto';
-            
-            // Configurar el documento
-            doc.font('Helvetica-Bold')
-               .fontSize(18)
-               .text('ALBARÁN', { align: 'center' })
-               .moveDown();
-            
-            doc.fontSize(12)
-               .text(`Número: ${deliveryNote.number}`, { align: 'right' })
-               .text(`Fecha: ${new Date(deliveryNote.date).toLocaleDateString()}`, { align: 'right' })
-               .moveDown(0.5);
-            
-            // Información de la empresa
-            doc.font('Helvetica-Bold')
-               .text('EMPRESA:')
-               .font('Helvetica')
-               .text(companyName)
-               .text(`${companyAddress.street || ''} ${companyAddress.number || ''}, ${companyAddress.postal || ''} ${companyAddress.city || ''}`)
-               .moveDown();
-            
-            // Información del cliente
-            doc.font('Helvetica-Bold')
-               .text('CLIENTE:')
-               .font('Helvetica')
-               .text(clientName)
-               .text(`${clientAddress.street || ''} ${clientAddress.number || ''}, ${clientAddress.postal || ''} ${clientAddress.city || ''}`)
-               .text(`NIF: ${client.nif || ''}`)
-               .moveDown();
-            
-            // Información del proyecto
-            doc.font('Helvetica-Bold')
-               .text('PROYECTO:')
-               .font('Helvetica')
-               .text(projectName)
-               .text(project.description || '')
-               .moveDown(1.5);
-            
-            // Tabla de horas trabajadas
-            if (deliveryNote.workedHours && deliveryNote.workedHours.length > 0) {
-                doc.font('Helvetica-Bold')
-                   .text('HORAS TRABAJADAS:', { underline: true })
-                   .moveDown(0.5);
-                
-                // Encabezados de columna
-                const workedHoursTableTop = doc.y;
-                doc.font('Helvetica-Bold')
-                   .text('Persona', 50, workedHoursTableTop)
-                   .text('Fecha', 180, workedHoursTableTop)
-                   .text('Horas', 280, workedHoursTableTop)
-                   .text('Precio/Hora', 350, workedHoursTableTop)
-                   .text('Subtotal', 450, workedHoursTableTop)
-                   .moveDown();
-                
-                // Filas de datos
-                let y = doc.y;
-                deliveryNote.workedHours.forEach(entry => {
-                    doc.font('Helvetica')
-                       .text(entry.person, 50, y)
-                       .text(new Date(entry.date).toLocaleDateString(), 180, y)
-                       .text(entry.hours.toString(), 280, y)
-                       .text(`${entry.hourlyRate || 0}€`, 350, y)
-                       .text(`${(entry.hours * (entry.hourlyRate || 0)).toFixed(2)}€`, 450, y);
-                    y += 20;
-                });
-                
-                doc.moveDown(1.5);
-            }
-            
-            // Tabla de materiales
-            if (deliveryNote.materials && deliveryNote.materials.length > 0) {
-                doc.font('Helvetica-Bold')
-                   .text('MATERIALES:', { underline: true })
-                   .moveDown(0.5);
-                
-                // Encabezados de columna
-                const materialsTableTop = doc.y;
-                doc.font('Helvetica-Bold')
-                   .text('Material', 50, materialsTableTop)
-                   .text('Cantidad', 280, materialsTableTop)
-                   .text('Precio', 350, materialsTableTop)
-                   .text('Subtotal', 450, materialsTableTop)
-                   .moveDown();
-                
-                // Filas de datos
-                let y = doc.y;
-                deliveryNote.materials.forEach(material => {
-                    doc.font('Helvetica')
-                       .text(material.name, 50, y)
-                       .text(material.quantity.toString(), 280, y)
-                       .text(`${material.price || 0}€`, 350, y)
-                       .text(`${(material.quantity * (material.price || 0)).toFixed(2)}€`, 450, y);
-                    y += 20;
-                });
-                
-                doc.moveDown(1.5);
-            }
-            
-            // Total
-            doc.font('Helvetica-Bold')
-               .text(`TOTAL: ${deliveryNote.totalAmount.toFixed(2)}€`, { align: 'right' })
-               .moveDown(2);
-            
-            // Observaciones
-            if (deliveryNote.observations) {
-                doc.font('Helvetica-Bold')
-                   .text('OBSERVACIONES:')
-                   .font('Helvetica')
-                   .text(deliveryNote.observations)
-                   .moveDown(2);
-            }
-            
-            // Firma si está firmado
-            if (deliveryNote.status === 'signed' && deliveryNote.signature) {
-                doc.font('Helvetica-Bold')
-                   .text('FIRMADO POR:')
-                   .font('Helvetica')
-                   .text(deliveryNote.signature.signer)
-                   .text(`Fecha: ${new Date(deliveryNote.signature.date).toLocaleDateString()}`);
-                
-                // Para la versión de PDF que se sube a IPFS, solo agregamos texto
-                // indicando que se ha firmado electrónicamente
-                doc.moveDown(0.5)
-                   .text('(Firmado electrónicamente)', { align: 'center' });
-            } else {
-                // Espacio para firma si no está firmado
-                doc.moveDown()
-                   .font('Helvetica-Bold')
-                   .text('FIRMA DEL CLIENTE:')
-                   .moveDown(5)
-                   .font('Helvetica')
-                   .text('___________________________', { align: 'center' });
-            }
-        };
-        
+        // Utilizar la misma función generatePdfContent para mantener consistencia
         // Esperar a que el PDF se genere completamente
         await new Promise((resolve, reject) => {
             writeStream.on('finish', resolve);
             writeStream.on('error', reject);
             doc.pipe(writeStream);
-            generatePdfForUpload(doc, deliveryNote);
+            
+            // Generar el contenido del PDF usando la misma función que se usa para la visualización
+            generatePdfContent(doc, deliveryNote);
+            
             doc.end();
         });
                 
@@ -947,7 +816,7 @@ const generateAndUploadPdf = async (deliveryNote) => {
             throw new Error("No se pudo obtener el hash IPFS de Pinata");
         }
         
-        const pdfUrl = `http://${process.env.PINATA_GATEWAY}/ipfs/${pinataResult.IpfsHash}`;
+        const pdfUrl = `https://${process.env.PINATA_GATEWAY}/ipfs/${pinataResult.IpfsHash}`;
         
         // Actualizar el albarán con la URL del PDF
         const updatedDeliveryNote = await deliveryNotesModel.findByIdAndUpdate(
@@ -955,9 +824,11 @@ const generateAndUploadPdf = async (deliveryNote) => {
             { pdfUrl: pdfUrl },
             { new: true }
         );
+        
         try {
             fs.unlinkSync(tempFilePath);
         } catch (cleanupError) {
+            // Ignorar errores al limpiar archivos temporales
         }
         
         return pdfUrl;

@@ -3,7 +3,7 @@
 @token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODIzMzQ1N2U4OWY5NDYxNDcyYjQ3NjMiLCJyb2xlIjoidXNlciIsImVtYWlsIjoiaTgxMGFnMDRAZ21haWwuY29tIiwiaWF0IjoxNzQ3MTM3NjUyLCJleHAiOjE3NDcyMjQwNTJ9.vVPbtluE-76TmwMIHnTgxMZ9TE-SMphEBmqfPRuZojc
 @clientId = 682336aab26d396f489e6671
 @projectId = 682336c6b26d396f489e667c
-@deliveryNoteId = 682338e165e46b249d16d48a
+@deliveryNoteId = 68233e871151a43add53faf8
 
 ###############################################
 #            AUTENTICACIÓN DE USUARIOS       #
@@ -379,8 +379,7 @@ Content-Type: application/json
   ]
 }
 
-### 41. Obtener PDF de un albarán
-//No conseguido cuando está sin firmar
+### 41. Obtener PDF de un albarán firmado
 GET {{baseUrl}}/deliverynote/pdf/{{deliveryNoteId}}?format=json
 Authorization: Bearer {{token}}
 
