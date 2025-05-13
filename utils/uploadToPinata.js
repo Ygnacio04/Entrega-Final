@@ -1,12 +1,8 @@
-
 const axios = require("axios");
 const FormData = require("form-data");
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
-
-const pinataApiKey = process.env.PINATA_KEY;
-const pinataSecretApiKey = process.env.PINATA_SECRET;
 
 /**
  * Sube un archivo a Pinata IPFS
@@ -16,6 +12,19 @@ const pinataSecretApiKey = process.env.PINATA_SECRET;
  */
 async function uploadToPinata(file, fileName) {
     try {
+        // Usar los nombres de variables de entorno correctos
+        const pinataApiKey = process.env.PINATA_API_KEY;
+        const pinataSecretApiKey = process.env.SECRET_API_KEY;
+        
+        console.log("Credenciales de Pinata:", {
+            keyExists: !!pinataApiKey,
+            secretExists: !!pinataSecretApiKey
+        });
+        
+        if (!pinataApiKey || !pinataSecretApiKey) {
+            throw new Error("Las credenciales de Pinata no están configuradas correctamente");
+        }
+        
         const url = `https://api.pinata.cloud/pinning/pinFileToIPFS`;
         // Crear un archivo temporal para almacenar el buffer
         const tempFilePath = path.join(os.tmpdir(), fileName);
@@ -27,10 +36,7 @@ async function uploadToPinata(file, fileName) {
         const formData = new FormData();
         
         // Agregar el archivo al FormData desde el archivo temporal
-        formData.append('file', fs.createReadStream(tempFilePath), {
-            filename: fileName,
-            contentType: file.mimetype
-        });
+        formData.append('file', fs.createReadStream(tempFilePath), fileName);
         
         // Agregar los metadatos
         const metadata = JSON.stringify({
@@ -43,28 +49,30 @@ async function uploadToPinata(file, fileName) {
         });
         formData.append('pinataOptions', options);
         
-        // Configurar los headers para la petición
+        // Headers para la petición
         const headers = {
-            ...formData.getHeaders(),
             'pinata_api_key': pinataApiKey,
-            'pinata_secret_api_key': pinataSecretApiKey
+            'pinata_secret_api_key': pinataSecretApiKey,
+            ...formData.getHeaders()
         };
+                
+        // Enviar la petición a Pinata
+        const response = await axios.post(url, formData, { headers });
         
-        // Enviar la petición a Pinata usando axios
-        const response = await axios.post(url, formData, {
-            headers: headers,
-            maxContentLength: Infinity,
-            maxBodyLength: Infinity
-        });
-        
-        // Eliminar el archivo temporal después de enviarlo
+        // Eliminar el archivo temporal después de la subida
         if (fs.existsSync(tempFilePath)) {
             fs.unlinkSync(tempFilePath);
         }
-        
+                
+        // Devolver los datos de la respuesta
         return response.data;
     } catch (error) {
         console.error('Error al subir archivo a Pinata:', error.message);
+        
+        // Mostrar más detalles del error si es una respuesta de Pinata
+        if (error.response) {
+            console.error('Detalles del error de Pinata:', error.response.data);
+        }
         
         // Si hay un error, asegurarse de limpiar archivos temporales si existen
         try {

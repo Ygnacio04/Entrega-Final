@@ -1,10 +1,9 @@
 @baseUrl = http://localhost:3000/api
 @baseUrlRoot = http://localhost:3000
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODIyNzdkMzIxNDZkZjY1ZWZiN2Y5YTMiLCJyb2xlIjoidXNlciIsImVtYWlsIjoiaTgxMGFnMDRAZ21haWwuY29tIiwiaWF0IjoxNzQ3MDkxODEzLCJleHAiOjE3NDcxNzgyMTN9.BiAuq2ItbuREL5zA2dc7LHsg9o48hUn2dhZ2EIzQyxM
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODIyZmUyOTRmZGQxOTcxODA3MzUwYWIiLCJyb2xlIjoidXNlciIsImVtYWlsIjoiaTgxMGFnMDRAZ21haWwuY29tIiwiaWF0IjoxNzQ3MTIzNzc0LCJleHAiOjE3NDcyMTAxNzR9.vUbyj-vclBFMaPZx4db0BEhOklibFOQQtIZHvkLYPbY
 @clientId = 682284108e0e183d73330a44
 @projectId = 682284eb8e0e183d73330a72
 @deliveryNoteId = 682285f38e0e183d73330ac1
-@invitationId = 682280852146df65efb7f9fc
 
 ###############################################
 #            AUTENTICACIÓN DE USUARIOS       #
@@ -15,9 +14,9 @@ POST {{baseUrl}}/user/register
 Content-Type: application/json
 
 {
-  "firstName": "Segundo",
-  "lastName": "Usuario",
-  "email": "i20ag04@gmail.com",
+  "firstName": "Ignacio",
+  "lastName": "Arregui",
+  "email": "i810ag04@gmail.com",
   "password": "Password123"
 }
 
@@ -26,8 +25,8 @@ POST {{baseUrl}}/user/verify-email
 Content-Type: application/json
 
 {
-  "email": "i20ag04@gmail.com",
-  "verificationCode": "710375"
+  "email": "i810ag04@gmail.com",
+  "verificationCode": "829364"
 }
 
 ### 3. Login de usuario
@@ -97,6 +96,8 @@ Content-Type: image/png
 #             GESTIÓN DE INVITACIONES        #
 ###############################################
 
+@invitationId = 6822fdb39f976e4617a5e07f
+@invitatorToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODIyZmU2MDRmZGQxOTcxODA3MzUwYjciLCJyb2xlIjoidXNlciIsImVtYWlsIjoiaTIwYWcwNEBnbWFpbC5jb20iLCJpYXQiOjE3NDcxMjM4MDksImV4cCI6MTc0NzIxMDIwOX0.OvUi4naIk4Vq6pK7mC1Z5lwSbVyIDvNGqZXO1uWkNOk
 ### 9. Registro de un segundo usuario para invitaciones
 POST {{baseUrl}}/user/register
 Content-Type: application/json
@@ -104,6 +105,24 @@ Content-Type: application/json
 {
   "firstName": "Ana",
   "lastName": "García",
+  "email": "i20ag04@gmail.com",
+  "password": "Password123"
+}
+
+### 9.5. Verificación de email (tras recibir código)
+POST {{baseUrl}}/user/verify-email
+Content-Type: application/json
+
+{
+  "email": "i20ag04@gmail.com",
+  "verificationCode": "232433"
+}
+
+### 9.5. Login de usuario
+POST {{baseUrl}}/user/login
+Content-Type: application/json
+
+{
   "email": "i20ag04@gmail.com",
   "password": "Password123"
 }
@@ -129,7 +148,7 @@ Authorization: Bearer {{token}}
 ### 13. Aceptar una invitación
 # Primero hacer login con el segundo usuario y obtener su token
 PUT {{baseUrl}}/user/invitations/accept/{{invitationId}}
-Authorization: Bearer {{token}}
+Authorization: Bearer {{invitatorToken}}
 
 ### 14. Rechazar una invitación
 PUT {{baseUrl}}/user/invitations/reject/{{invitationId}}
