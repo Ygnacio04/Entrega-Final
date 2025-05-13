@@ -10,7 +10,7 @@ JWT_SECRET = clave_secreta_jwt
 
 # Configuración de Pinata para IPFS
 PINATA_API_KEY = api_key_de_pinata
-PINATA_SECRET = clave_secreta_de_pinata
+SECRET_API_KEY = clave_secreta_de_pinata
 PINATA_GATEWAY = nombre_de_gateway.mypinata.cloud
 
 # Configuración de Email con OAuth2

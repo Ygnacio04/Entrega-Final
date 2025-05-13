@@ -1,9 +1,9 @@
 @baseUrl = http://localhost:3000/api
 @baseUrlRoot = http://localhost:3000
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODIzMDMxZjM5YjUxYWY5ZGE5MjM1MTQiLCJyb2xlIjoidXNlciIsImVtYWlsIjoiaTgxMGFnMDRAZ21haWwuY29tIiwiaWF0IjoxNzQ3MTI1MDY1LCJleHAiOjE3NDcyMTE0NjV9.edvvPYNncdaER3ZJ1wcHhpiAToIgXGAhhYlWPDaEIUw
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODIzMDMxZjM5YjUxYWY5ZGE5MjM1MTQiLCJyb2xlIjoidXNlciIsImVtYWlsIjoiaTgxMGFnMDRAZ21haWwuY29tIiwiaWF0IjoxNzQ3MTI5OTkxLCJleHAiOjE3NDcyMTYzOTF9.Wz8fi6RT8A7hK3OXtZaZ8MFJFLMDhJ9PX3KhLKqMxfM
 @clientId = 682304067902318a0c060f9a
 @projectId = 6823044c7902318a0c060fba
-@deliveryNoteId = 6823058e5116023934aa41f6
+@deliveryNoteId = 682315e27f05a30fa2197272
 
 ###############################################
 #            AUTENTICACIÓN DE USUARIOS       #
@@ -380,7 +380,8 @@ Content-Type: application/json
 }
 
 ### 41. Obtener PDF de un albarán
-GET {{baseUrl}}/deliverynote/pdf/{{deliveryNoteId}}
+//No conseguido
+GET {{baseUrl}}/deliverynote/pdf/{{deliveryNoteId}}?format=json
 Authorization: Bearer {{token}}
 
 ### 42. Firmar un albarán
@@ -396,7 +397,7 @@ Content-Type: image/png
 ------WebKitFormBoundary7MA4YWxkTrZu0gW
 Content-Disposition: form-data; name="signer"
 
-Antonio Cliente
+Ignacio Arregui
 ------WebKitFormBoundary7MA4YWxkTrZu0gW--
 
 ### 43. Archivar un albarán (soft delete)
