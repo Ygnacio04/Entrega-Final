@@ -52,14 +52,16 @@ const getClient = async (req, res) => {
         const { id } = req.params;
         const user = req.user;
 
-         // Buscar cliente por ID que pertenezca al usuario o su compañía
-        const client = await clientsModel.findOne({
-            _id: id,
-            $or: [
-                {createdBy: user._id},
-                {company: user.company?._id}
-            ]
-        });
+        // Construir consulta base
+        const query = { _id: id, $or: [{createdBy: user._id}] };
+        
+        // Solo añadir filtro de compañía si el usuario tiene una
+        if (user.company && user.company._id) {
+            query.$or.push({company: user.company._id});
+        }
+
+        // Buscar cliente con la consulta optimizada
+        const client = await clientsModel.findOne(query);
 
         if (!client) {
             return handleHttpError(res, "CLIENT_NOT_FOUND", 404);
@@ -83,13 +85,16 @@ const getClients = async (req, res) => {
     try {
         const user = req.user;
 
-        // Buscar clientes del usuario o de su compañía
-        const clients = await clientsModel.find({
-            $or: [
-                {createdBy: user._id},
-                {company: user.company?._id}
-            ]
-        });
+        // Construir consulta base
+        const query = { $or: [{createdBy: user._id}] };
+        
+        // Solo añadir filtro de compañía si el usuario tiene una
+        if (user.company && user.company._id) {
+            query.$or.push({company: user.company._id});
+        }
+
+        // Buscar clientes con la consulta optimizada
+        const clients = await clientsModel.find(query);
         
         res.send({clients});
 
@@ -107,18 +112,20 @@ const getClients = async (req, res) => {
 
 const updateClient = async (req, res) => {
     try{
-        const{id} = req.params;
+        const { id } = req.params;
         const body = matchedData(req);
         const user = req.user;
 
-        //Verificar que existe el cliente del usuario o compañía
-        const clientExists = await clientsModel.findOne({
-            _id: id,
-            $or: [
-                {createdBy: user._id},
-                {company: user.company?._id}
-            ]
-        });
+        // Construir consulta base
+        const query = { _id: id, $or: [{createdBy: user._id}] };
+        
+        // Solo añadir filtro de compañía si el usuario tiene una
+        if (user.company && user.company._id) {
+            query.$or.push({company: user.company._id});
+        }
+
+        // Verificar que existe el cliente
+        const clientExists = await clientsModel.findOne(query);
 
         if(!clientExists){
             return handleHttpError(res, "CLIENT_NOT_FOUND", 404);
@@ -150,17 +157,21 @@ const deleteClient = async (req, res) => {
         const user = req.user;
         const { hard } = req.query; // si hard=true, hard delete
 
-        // Verificar que el cliente existe y pertenece al usuario o compañía
-        const client = await clientsModel.findOne({
-            _id: id,
-            $or: [
-                { createdBy: user._id },
-                { company: user.company?._id }
-            ]
-        });
+        // Construir consulta base
+        const query = { _id: id, $or: [{createdBy: user._id}] };
+        
+        // Solo añadir filtro de compañía si el usuario tiene una
+        if (user.company && user.company._id) {
+            query.$or.push({company: user.company._id});
+        }
+
+        // Verificar que el cliente existe
+        const client = await clientsModel.findOne(query);
+        
         if (!client) {
             return handleHttpError(res, "CLIENT_NOT_FOUND", 404);
         }
+        
         // Realizar soft delete o hard delete
         if (hard === 'true') {
             await clientsModel.deleteOne({ _id: id });
@@ -184,13 +195,16 @@ const getArchivedClients = async (req, res) => {
     try {
         const user = req.user;
         
-        // Buscar clientes archivados del usuario o de su compañía
-        const clients = await clientsModel.findDeleted({
-            $or: [
-                { createdBy: user._id },
-                { company: user.company?._id }
-            ]
-        });
+        // Construir consulta base
+        const query = { $or: [{createdBy: user._id}] };
+        
+        // Solo añadir filtro de compañía si el usuario tiene una
+        if (user.company && user.company._id) {
+            query.$or.push({company: user.company._id});
+        }
+
+        // Buscar clientes archivados con la consulta optimizada
+        const clients = await clientsModel.findDeleted(query);
 
         res.send({ clients });
     } catch (error) {
@@ -209,14 +223,16 @@ const restoreClient = async (req, res) => {
         const { id } = req.params;
         const user = req.user;
 
-        // Verificar que el cliente archivado existe y pertenece al usuario o su compañía
-        const client = await clientsModel.findOneDeleted({
-            _id: id,
-            $or: [
-                { createdBy: user._id },
-                { company: user.company?._id }
-            ]
-        });
+        // Construir consulta base
+        const query = { _id: id, $or: [{createdBy: user._id}] };
+        
+        // Solo añadir filtro de compañía si el usuario tiene una
+        if (user.company && user.company._id) {
+            query.$or.push({company: user.company._id});
+        }
+
+        // Verificar que el cliente archivado existe
+        const client = await clientsModel.findOneDeleted(query);
 
         if (!client) {
             return handleHttpError(res, "ARCHIVED_CLIENT_NOT_FOUND", 404);
@@ -231,7 +247,7 @@ const restoreClient = async (req, res) => {
         console.log(error);
         handleHttpError(res, "ERROR_RESTORE_CLIENT");
     }
-};  
+};
 
 module.exports = {
     createClient,

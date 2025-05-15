@@ -1,7 +1,7 @@
 @baseUrl = http://localhost:3000/api
 @baseUrlRoot = http://localhost:3000
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODIzMzQ1N2U4OWY5NDYxNDcyYjQ3NjMiLCJyb2xlIjoidXNlciIsImVtYWlsIjoiaTgxMGFnMDRAZ21haWwuY29tIiwiaWF0IjoxNzQ3MTM3NjUyLCJleHAiOjE3NDcyMjQwNTJ9.vVPbtluE-76TmwMIHnTgxMZ9TE-SMphEBmqfPRuZojc
-@clientId = 682336aab26d396f489e6671
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODI1Y2NjOWVjYjczZjliOTdlYTM2MDQiLCJyb2xlIjoidXNlciIsImVtYWlsIjoiaTgxMGFnMDRAZ21haWwuY29tIiwiaWF0IjoxNzQ3MzA5ODE2LCJleHAiOjE3NDczOTYyMTZ9.E70HpM63Sg_pTn_wOQLiT63bKuBeFwc5mLOjwbafxk8
+@clientId = 6825cc8eecb73f9b97ea35fd
 @projectId = 682336c6b26d396f489e667c
 @deliveryNoteId = 68233e871151a43add53faf8
 
