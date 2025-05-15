@@ -13,28 +13,35 @@ const createProject = async (req, res) => {
         const user = req.user;
         const body = matchedData(req);
         
+        // Construir consulta base para verificar el cliente
+        const clientQuery = { _id: body.client, $or: [{createdBy: user._id}] };
+        
+        // Solo añadir filtro de compañía si el usuario tiene una
+        if (user.company && user.company._id) {
+            clientQuery.$or.push({company: user.company._id});
+        }
+        
         // Ver si el cliente existe y pertenece al usuario o su compañía
-        const client = await clientsModel.findOne({
-            _id: body.client,
-            $or: [
-                { createdBy: user._id },
-                { company: user.company?._id }
-            ]
-        });
+        const client = await clientsModel.findOne(clientQuery);
 
         if (!client) {
             return handleHttpError(res, "CLIENT_NOT_FOUND", 404);
         }
 
-        // Ver si el proyecto ya existe para este cliente y usuario/compañía
-        const existingProject = await projectsModel.findOne({
+        // Construir consulta base para verificar si el proyecto ya existe
+        const existingProjectQuery = { 
             name: body.name,
-            client: body.client,
-            $or: [
-                { createdBy: user._id },
-                { company: user.company?._id }
-            ]
-        });
+            client: body.client, 
+            $or: [{createdBy: user._id}] 
+        };
+        
+        // Solo añadir filtro de compañía si el usuario tiene una
+        if (user.company && user.company._id) {
+            existingProjectQuery.$or.push({company: user.company._id});
+        }
+        
+        // Ver si el proyecto ya existe para este cliente y usuario/compañía
+        const existingProject = await projectsModel.findOne(existingProjectQuery);
 
         if (existingProject) {
             return handleHttpError(res, "PROJECT_ALREADY_EXISTS", 409);
@@ -68,20 +75,20 @@ const getProjects = async (req, res) => {
        const user = req.user;
        const { clientId } = req.query; // Opcional: filtrar por cliente
        
-       // Construir query base
-       const query = {
-           $or: [
-               { createdBy: user._id },
-               { company: user.company?._id }
-           ]
-       };
+       // Construir consulta base
+       const query = { $or: [{createdBy: user._id}] };
+       
+       // Solo añadir filtro de compañía si el usuario tiene una
+       if (user.company && user.company._id) {
+           query.$or.push({company: user.company._id});
+       }
        
        // Añadir filtro por cliente si se proporciona
        if (clientId) {
            query.client = clientId;
        }
        
-       // Buscar proyectos del usuario o de su compañía
+       // Buscar proyectos con la consulta optimizada
        const projects = await projectsModel.find(query)
            .populate('client');
 
@@ -102,14 +109,16 @@ const getProject = async (req, res) => {
        const { id } = req.params;
        const user = req.user;
 
-       // Buscar proyecto por ID que pertenezca al usuario o su compañía
-       const project = await projectsModel.findOne({
-           _id: id,
-           $or: [
-               { createdBy: user._id },
-               { company: user.company?._id }
-           ]
-       }).populate('client');
+       // Construir consulta base
+       const query = { _id: id, $or: [{createdBy: user._id}] };
+       
+       // Solo añadir filtro de compañía si el usuario tiene una
+       if (user.company && user.company._id) {
+           query.$or.push({company: user.company._id});
+       }
+
+       // Buscar proyecto por ID con la consulta optimizada
+       const project = await projectsModel.findOne(query).populate('client');
 
        if (!project) {
            return handleHttpError(res, "PROJECT_NOT_FOUND", 404);
@@ -133,14 +142,16 @@ const updateProject = async (req, res) => {
        const body = matchedData(req);
        const user = req.user;
 
+       // Construir consulta base para el proyecto
+       const projectQuery = { _id: id, $or: [{createdBy: user._id}] };
+       
+       // Solo añadir filtro de compañía si el usuario tiene una
+       if (user.company && user.company._id) {
+           projectQuery.$or.push({company: user.company._id});
+       }
+
        // Verificar que el proyecto existe y pertenece al usuario o su compañía
-       const projectExists = await projectsModel.findOne({
-           _id: id,
-           $or: [
-               { createdBy: user._id },
-               { company: user.company?._id }
-           ]
-       });
+       const projectExists = await projectsModel.findOne(projectQuery);
 
        if (!projectExists) {
            return handleHttpError(res, "PROJECT_NOT_FOUND", 404);
@@ -148,13 +159,15 @@ const updateProject = async (req, res) => {
 
        // Si se está actualizando el cliente, verificar que existe y pertenece al usuario/compañía
        if (body.client) {
-           const client = await clientsModel.findOne({
-               _id: body.client,
-               $or: [
-                   { createdBy: user._id },
-                   { company: user.company?._id }
-               ]
-           });
+           // Construir consulta base para el cliente
+           const clientQuery = { _id: body.client, $or: [{createdBy: user._id}] };
+           
+           // Solo añadir filtro de compañía si el usuario tiene una
+           if (user.company && user.company._id) {
+               clientQuery.$or.push({company: user.company._id});
+           }
+
+           const client = await clientsModel.findOne(clientQuery);
 
            if (!client) {
                return handleHttpError(res, "CLIENT_NOT_FOUND", 404);
@@ -186,14 +199,16 @@ const deleteProject = async (req, res) => {
         const user = req.user;
         const { hard } = req.query; // si hard=true, se realiza hard delete
 
-        // Verificar que el proyecto existe y pertenece al usuario o su compañía
-        const project = await projectsModel.findOne({
-            _id: id,
-            $or: [
-                { createdBy: user._id },
-                { company: user.company?._id }
-            ]
-        });
+        // Construir consulta base
+        const query = { _id: id, $or: [{createdBy: user._id}] };
+        
+        // Solo añadir filtro de compañía si el usuario tiene una
+        if (user.company && user.company._id) {
+            query.$or.push({company: user.company._id});
+        }
+
+        // Verificar que el proyecto existe
+        const project = await projectsModel.findOne(query);
 
         if (!project) {
             return handleHttpError(res, "PROJECT_NOT_FOUND", 404);
@@ -222,15 +237,20 @@ const getArchivedProjects = async (req, res) => {
     try {
         const user = req.user;
         
-        // Buscar proyectos archivados del usuario o de su compañía
-        const projects = await projectsModel.findDeleted({
-            $or: [
-                { createdBy: user._id },
-                { company: user.company?._id }
-            ]
-        }).populate('client');
+        // Construir consulta base
+        const query = {$or: [{createdBy: user._id}] };
+        
+        // Solo añadir filtro de compañía si el usuario tiene una
+        if (user.company && user.company._id) {
+            query.$or.push({company: user.company._id});
+        }
+        
+        // Buscar proyectos archivados con la consulta optimizada
+        const allProjects  = await projectsModel.findDeleted(query).populate('client');
 
-        res.send({ projects });
+        const archivedProjects = allProjects.filter(project => project.deleted === true);
+
+        res.send({ projects: archivedProjects });
     } catch (error) {
         console.log(error);
         handleHttpError(res, "ERROR_GET_ARCHIVED_PROJECTS");
@@ -247,14 +267,16 @@ const restoreProject = async (req, res) => {
         const { id } = req.params;
         const user = req.user;
 
-        // Verificar que el proyecto archivado existe y pertenece al usuario o su compañía
-        const project = await projectsModel.findOneDeleted({
-            _id: id,
-            $or: [
-                { createdBy: user._id },
-                { company: user.company?._id }
-            ]
-        });
+        // Construir consulta base
+        const query = { _id: id, $or: [{createdBy: user._id}] };
+        
+        // Solo añadir filtro de compañía si el usuario tiene una
+        if (user.company && user.company._id) {
+            query.$or.push({company: user.company._id});
+        }
+
+        // Verificar que el proyecto archivado existe
+        const project = await projectsModel.findOneDeleted(query);
 
         if (!project) {
             return handleHttpError(res, "ARCHIVED_PROJECT_NOT_FOUND", 404);

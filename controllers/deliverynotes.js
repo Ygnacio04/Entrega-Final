@@ -17,26 +17,31 @@ const createDeliveryNote = async (req, res) => {
         const user = req.user;
         const body = matchedData(req);
 
-        // Ver si  existe y pertenece al usuario o compañía
-        const project = await projectsModel.findOne({
-            _id: body.project,
-            $or: [
-                { createdBy: user._id },
-                { company: user.company?._id }
-            ]
-        }).populate('client');
+        // Construir consulta base para el proyecto
+        const projectQuery = { _id: body.project, $or: [{createdBy: user._id}] };
+        
+        // Solo añadir filtro de compañía si el usuario tiene una
+        if (user.company && user.company._id) {
+            projectQuery.$or.push({company: user.company._id});
+        }
+
+        // Ver si el proyecto existe y pertenece al usuario o compañía
+        const project = await projectsModel.findOne(projectQuery).populate('client');
 
         if (!project) {
             return handleHttpError(res, "PROJECT_NOT_FOUND", 404);
         }
 
         // Generar número de albarán automáticamente
-        const count = await deliveryNotesModel.countDocuments({
-            $or: [
-                { createdBy: user._id },
-                { company: user.company?._id }
-            ]
-        });
+        // Construir consulta para contar albaranes del usuario/compañía
+        const countQuery = { $or: [{createdBy: user._id}] };
+        
+        // Solo añadir filtro de compañía si el usuario tiene una
+        if (user.company && user.company._id) {
+            countQuery.$or.push({company: user.company._id});
+        }
+        
+        const count = await deliveryNotesModel.countDocuments(countQuery);
         
         // Formato: ALB-YYYY-NNNN
         const year = new Date().getFullYear();
@@ -79,12 +84,13 @@ const getDeliveryNotes = async (req, res) => {
         const user = req.user;
         const { projectId, clientId, status } = req.query;
 
-        const query = {
-            $or: [
-                { createdBy: user._id },
-                { company: user.company?._id }
-            ]
-        };
+        // Construir consulta base
+        const query = { $or: [{createdBy: user._id}] };
+        
+        // Solo añadir filtro de compañía si el usuario tiene una
+        if (user.company && user.company._id) {
+            query.$or.push({company: user.company._id});
+        }
 
         // Filtrar por proyecto
         if (projectId) {
@@ -98,13 +104,15 @@ const getDeliveryNotes = async (req, res) => {
 
         // Filtrar por clientId
         if (clientId) {
-            const projects = await projectsModel.find({
-                client: clientId,
-                $or: [
-                    { createdBy: user._id },
-                    { company: user.company?._id }
-                ]
-            });
+            // Construir consulta para proyectos del cliente
+            const projectQuery = { client: clientId, $or: [{createdBy: user._id}] };
+            
+            // Solo añadir filtro de compañía si el usuario tiene una
+            if (user.company && user.company._id) {
+                projectQuery.$or.push({company: user.company._id});
+            }
+            
+            const projects = await projectsModel.find(projectQuery);
             
             // Añadir los proyectos a la consulta
             if (projects.length > 0) {
@@ -135,6 +143,7 @@ const getDeliveryNotes = async (req, res) => {
     }
 };
 
+
 /**
  * Obtener un albarán por ID
  * @param {Object} req
@@ -145,14 +154,16 @@ const getDeliveryNote = async (req, res) => {
         const { id } = req.params;
         const user = req.user;
 
-        // Buscar albarán por ID que pertenezca al usuario o compañía
-        const deliveryNote = await deliveryNotesModel.findOne({
-            _id: id,
-            $or: [
-                { createdBy: user._id },
-                { company: user.company?._id }
-            ]
-        })
+        // Construir consulta base
+        const query = { _id: id, $or: [{createdBy: user._id}] };
+        
+        // Solo añadir filtro de compañía si el usuario tiene una
+        if (user.company && user.company._id) {
+            query.$or.push({company: user.company._id});
+        }
+
+        // Buscar albarán por ID con la consulta optimizada
+        const deliveryNote = await deliveryNotesModel.findOne(query)
         .populate({
             path: 'project',
             populate: {
@@ -184,14 +195,16 @@ const updateDeliveryNote = async (req, res) => {
         const body = matchedData(req);
         const user = req.user;
 
+        // Construir consulta base
+        const query = { _id: id, $or: [{createdBy: user._id}] };
+        
+        // Solo añadir filtro de compañía si el usuario tiene una
+        if (user.company && user.company._id) {
+            query.$or.push({company: user.company._id});
+        }
+
         // Verificar que el albarán existe y pertenece al usuario o compañía
-        const deliveryNoteExists = await deliveryNotesModel.findOne({
-            _id: id,
-            $or: [
-                { createdBy: user._id },
-                { company: user.company?._id }
-            ]
-        });
+        const deliveryNoteExists = await deliveryNotesModel.findOne(query);
 
         if (!deliveryNoteExists) {
             return handleHttpError(res, "DELIVERY_NOTE_NOT_FOUND", 404);
@@ -204,13 +217,15 @@ const updateDeliveryNote = async (req, res) => {
 
         // Si se está actualizando el proyecto, verificar que existe y pertenece al usuario/compañía
         if (body.project) {
-            const project = await projectsModel.findOne({
-                _id: body.project,
-                $or: [
-                    { createdBy: user._id },
-                    { company: user.company?._id }
-                ]
-            });
+            // Construir consulta para el proyecto
+            const projectQuery = { _id: body.project, $or: [{createdBy: user._id}] };
+            
+            // Solo añadir filtro de compañía si el usuario tiene una
+            if (user.company && user.company._id) {
+                projectQuery.$or.push({company: user.company._id});
+            }
+
+            const project = await projectsModel.findOne(projectQuery);
 
             if (!project) {
                 return handleHttpError(res, "PROJECT_NOT_FOUND", 404);
@@ -251,17 +266,23 @@ const updateDeliveryNote = async (req, res) => {
  * @param {Object} req
  * @param {Object} res
  */
+/**
+ * Obtener albaranes archivados
+ * @param {Object} req
+ * @param {Object} res
+ */
 const getArchivedDeliveryNotes = async (req, res) => {
     try {
         const user = req.user;
         const { projectId, clientId, status } = req.query;
 
-        const query = {
-            $or: [
-                { createdBy: user._id },
-                { company: user.company?._id }
-            ]
-        };
+        // Construir consulta base (sin incluir deleted: true porque usaremos findWithDeleted)
+        const query = { $or: [{createdBy: user._id}] };
+        
+        // Solo añadir filtro de compañía si el usuario tiene una
+        if (user.company && user.company._id) {
+            query.$or.push({company: user.company._id});
+        }
         
         // Filtrar por proyecto
         if (projectId) {
@@ -275,13 +296,15 @@ const getArchivedDeliveryNotes = async (req, res) => {
 
         // Filtrar por clientId
         if (clientId) {
-            const projects = await projectsModel.find({
-                client: clientId,
-                $or: [
-                    { createdBy: user._id },
-                    { company: user.company?._id }
-                ]
-            });
+            // Construir consulta para proyectos del cliente
+            const projectQuery = { client: clientId, $or: [{createdBy: user._id}] };
+            
+            // Solo añadir filtro de compañía si el usuario tiene una
+            if (user.company && user.company._id) {
+                projectQuery.$or.push({company: user.company._id});
+            }
+            
+            const projects = await projectsModel.find(projectQuery);
             
             if (projects.length > 0) {
                 const projectIds = projects.map(p => p._id);
@@ -291,8 +314,9 @@ const getArchivedDeliveryNotes = async (req, res) => {
             }
         }
 
-        // Obtener albaranes archivados con populate
-        const deliveryNotes = await deliveryNotesModel.findDeleted(query)
+        // Obtener TODOS los albaranes (incluidos los eliminados)
+        // y luego filtrar manualmente los que tienen deleted=true
+        const allDeliveryNotes = await deliveryNotesModel.findWithDeleted(query)
             .populate({
                 path: 'project',
                 populate: {
@@ -303,12 +327,24 @@ const getArchivedDeliveryNotes = async (req, res) => {
             .populate('company', 'company')
             .sort({ createdAt: -1 });
 
-        res.send({ deliveryNotes });
+        // Filtrar solo los documentos con deleted=true
+        const archivedDeliveryNotes = allDeliveryNotes.filter(note => note.deleted === true);
+        
+        console.log(`Total de albaranes encontrados: ${allDeliveryNotes.length}`);
+        console.log(`Albaranes archivados: ${archivedDeliveryNotes.length}`);
+        
+        // Verificar explícitamente los documentos
+        allDeliveryNotes.forEach(note => {
+            console.log(`ID: ${note._id}, deleted: ${note.deleted}, deletedAt: ${note.deletedAt}`);
+        });
+
+        res.send({ deliveryNotes: archivedDeliveryNotes });
     } catch (error) {
         console.log(error);
         handleHttpError(res, "ERROR_GET_ARCHIVED_DELIVERY_NOTES");
     }
 };
+
 
 /**
  * Restaurar un albarán archivado
@@ -320,14 +356,16 @@ const restoreDeliveryNote = async (req, res) => {
         const { id } = req.params;
         const user = req.user;
 
+        // Construir consulta base
+        const query = { _id: id, $or: [{createdBy: user._id}] };
+        
+        // Solo añadir filtro de compañía si el usuario tiene una
+        if (user.company && user.company._id) {
+            query.$or.push({company: user.company._id});
+        }
+
         // Verificar que el albarán archivado existe y pertenece al usuario o su compañía
-        const deliveryNote = await deliveryNotesModel.findOneDeleted({
-            _id: id,
-            $or: [
-                { createdBy: user._id },
-                { company: user.company?._id }
-            ]
-        });
+        const deliveryNote = await deliveryNotesModel.findOneDeleted(query);
 
         if (!deliveryNote) {
             return handleHttpError(res, "ARCHIVED_DELIVERY_NOTE_NOT_FOUND", 404);
@@ -383,6 +421,7 @@ const restoreDeliveryNote = async (req, res) => {
     }
 };
 
+
 /**
  * Eliminar un albarán
  * @param {Object} req
@@ -394,14 +433,16 @@ const deleteDeliveryNote = async (req, res) => {
         const user = req.user;
         const { hard } = req.query;
 
-        // Verificar que el albarán existe y pertenece al usuario o compañía
-        const deliveryNote = await deliveryNotesModel.findOne({
-            _id: id,
-            $or: [
-                { createdBy: user._id },
-                { company: user.company?._id }
-            ]
-        });
+        // Construir consulta base
+        const query = { _id: id, $or: [{createdBy: user._id}] };
+        
+        // Solo añadir filtro de compañía si el usuario tiene una
+        if (user.company && user.company._id) {
+            query.$or.push({company: user.company._id});
+        }
+
+        // Verificar que el albarán existe
+        const deliveryNote = await deliveryNotesModel.findOne(query);
 
         if (!deliveryNote) {
             return handleHttpError(res, "DELIVERY_NOTE_NOT_FOUND", 404);
@@ -441,17 +482,24 @@ const signDeliveryNote = async (req, res) => {
             return handleHttpError(res, "NO_SIGNATURE_PROVIDED", 400);
         }
 
-        // Verificar que el albarán existe y pertenece al usuario o compañía
-        const deliveryNote = await deliveryNotesModel.findOne({
-            _id: id,
-            $or: [
-                { createdBy: user._id },
-                { company: user.company?._id }
-            ]
-        });
+        // Construir consulta base
+        const query = { _id: id, $or: [{createdBy: user._id}] };
+        
+        // Solo añadir filtro de compañía si el usuario tiene una
+        if (user.company && user.company._id) {
+            query.$or.push({company: user.company._id});
+        }
+
+        // Verificar que el albarán existe
+        const deliveryNote = await deliveryNotesModel.findOne(query);
 
         if (!deliveryNote) {
             return handleHttpError(res, "DELIVERY_NOTE_NOT_FOUND", 404);
+        }
+
+        // Verificar que el albarán no esté ya firmado
+        if (deliveryNote.status === 'signed') {
+            return handleHttpError(res, "DELIVERY_NOTE_ALREADY_SIGNED", 400);
         }
 
         // Subir la firma a IPFS via Pinata
@@ -511,14 +559,16 @@ const getDeliveryNotePdf = async (req, res) => {
         const user = req.user;
         const format = req.query.format || 'auto'; // Formato de respuesta: pdf, json o auto (default)
 
-        // Verificar que el albarán existe y pertenece al usuario o su compañía
-        const deliveryNote = await deliveryNotesModel.findOne({
-            _id: id,
-            $or: [
-                { createdBy: user._id },
-                { company: user.company?._id }
-            ]
-        })
+        // Construir consulta base
+        const query = { _id: id, $or: [{createdBy: user._id}] };
+        
+        // Solo añadir filtro de compañía si el usuario tiene una
+        if (user.company && user.company._id) {
+            query.$or.push({company: user.company._id});
+        }
+
+        // Verificar que el albarán existe
+        const deliveryNote = await deliveryNotesModel.findOne(query)
         .populate({
             path: 'project',
             populate: {
@@ -598,6 +648,7 @@ const calculateTotal = (workedHours = [], materials = []) => {
     
     return total;
 };
+
 
 /**
  * Función auxiliar para generar el contenido del PDF

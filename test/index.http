@@ -1,9 +1,9 @@
 @baseUrl = http://localhost:3000/api
 @baseUrlRoot = http://localhost:3000
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODI1Y2NjOWVjYjczZjliOTdlYTM2MDQiLCJyb2xlIjoidXNlciIsImVtYWlsIjoiaTgxMGFnMDRAZ21haWwuY29tIiwiaWF0IjoxNzQ3MzA5ODE2LCJleHAiOjE3NDczOTYyMTZ9.E70HpM63Sg_pTn_wOQLiT63bKuBeFwc5mLOjwbafxk8
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODI1Y2M1MWVjYjczZjliOTdlYTM1ZjQiLCJyb2xlIjoidXNlciIsImVtYWlsIjoiaTIwYWcwNEBnbWFpbC5jb20iLCJpYXQiOjE3NDczMTM1MjMsImV4cCI6MTc0NzM5OTkyM30.omkcCbNmOGFUghe5JWaOLcwRluNzqvq4lWgbwDgWPio
 @clientId = 6825cc8eecb73f9b97ea35fd
-@projectId = 682336c6b26d396f489e667c
-@deliveryNoteId = 68233e871151a43add53faf8
+@projectId = 6825de9c911ec728528bda49
+@deliveryNoteId = 6825e6513ab96e5428277160
 
 ###############################################
 #            AUTENTICACIÓN DE USUARIOS       #
@@ -35,7 +35,7 @@ POST {{baseUrl}}/user/login
 Content-Type: application/json
 
 {
-  "email": "i810ag04@gmail.com",
+  "email": "i20ag04@gmail.com",
   "password": "Password123"
 }
 
