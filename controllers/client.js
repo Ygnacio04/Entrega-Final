@@ -77,7 +77,7 @@ const getClients = async (req, res) => {
     try {
         const user = req.user;
 
-        // Crear la consulta base
+        // Crear la consulta base correcta
         const query = {
             $or: [
                 { createdBy: user._id } // Clientes creados por el usuario
@@ -85,8 +85,8 @@ const getClients = async (req, res) => {
         };
 
         // Si el usuario pertenece a una compañía, incluir los clientes de esa compañía
-        if (user.companyId) {
-            query.$or.push({ companyId: user.companyId });
+        if (user.company?._id) {
+            query.$or.push({ company: user.company._id });
         }
         
         // Buscar clientes
