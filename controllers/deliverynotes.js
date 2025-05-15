@@ -329,14 +329,6 @@ const getArchivedDeliveryNotes = async (req, res) => {
 
         // Filtrar solo los documentos con deleted=true
         const archivedDeliveryNotes = allDeliveryNotes.filter(note => note.deleted === true);
-        
-        console.log(`Total de albaranes encontrados: ${allDeliveryNotes.length}`);
-        console.log(`Albaranes archivados: ${archivedDeliveryNotes.length}`);
-        
-        // Verificar explícitamente los documentos
-        allDeliveryNotes.forEach(note => {
-            console.log(`ID: ${note._id}, deleted: ${note.deleted}, deletedAt: ${note.deletedAt}`);
-        });
 
         res.send({ deliveryNotes: archivedDeliveryNotes });
     } catch (error) {
@@ -376,9 +368,7 @@ const restoreDeliveryNote = async (req, res) => {
         // Verificar explícitamente que ya no está en los documentos eliminados
         const stillDeleted = await deliveryNotesModel.findOneDeleted({ _id: id });
         
-        if (stillDeleted) {
-            console.log("¡Alerta! El documento sigue marcado como eliminado después de restaurar");
-            
+        if (stillDeleted) {        
             // Intento alternativo: actualizar directamente los campos de borrado
             await deliveryNotesModel.updateOne(
                 { _id: id },
@@ -406,17 +396,13 @@ const restoreDeliveryNote = async (req, res) => {
             .populate('createdBy', 'firstName lastName email company')
             .populate('company', 'company');
 
-        console.log("Estado después de restaurar:", {
-            id: restoredDeliveryNote._id,
-            deleted: restoredDeliveryNote.deleted,
-        });
+
 
         res.send({ 
             deliveryNote: restoredDeliveryNote, 
             message: "DELIVERY_NOTE_RESTORED" 
         });
     } catch (error) {
-        console.log("Error completo en restoreDeliveryNote:", error);
         handleHttpError(res, "ERROR_RESTORE_DELIVERY_NOTE");
     }
 };
@@ -607,7 +593,6 @@ const getDeliveryNotePdf = async (req, res) => {
         }
 
         // Si no tiene PDF, generamos uno en tiempo real
-        console.log("Generando PDF en tiempo real para albarán sin PDF en IPFS");
         const doc = new PDFDocument({ margin: 50 });
         
         // Configurar la respuesta
@@ -826,9 +811,7 @@ const generatePdfContent = (doc, deliveryNote) => {
  * @param {Object} deliveryNote 
  */
 const generateAndUploadPdf = async (deliveryNote) => {
-    try {
-        console.log("Iniciando generación y carga de PDF para albarán:", deliveryNote._id);
-        
+    try {        
         // Crear directorio temporal si no existe
         const tempDir = path.join(__dirname, '../temp');
         if (!fs.existsSync(tempDir)) {
