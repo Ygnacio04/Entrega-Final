@@ -3,7 +3,7 @@ const models = {
     clientsModel: require('./nosql/clients'),
     projectsModel: require('./nosql/projects'),
     deliveryNotesModel: require('./nosql/deliverynotes'),
-    companiesModel: require('./nosql/company')
+
 }
 
 module.exports = models;

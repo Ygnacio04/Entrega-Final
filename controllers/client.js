@@ -73,27 +73,27 @@ const getClient = async (req, res) => {
     }
 };
 
+/**
+ * Obtener todos los clientes del usuario o compañía
+ * @param {Object} req
+ * @param {Object} res
+ */
+
 const getClients = async (req, res) => {
     try {
         const user = req.user;
 
-        // Crear la consulta base
-        const query = {
+        // Buscar clientes del usuario o de su compañía
+        const clients = await clientsModel.find({
             $or: [
-                { createdBy: user._id } // Clientes creados por el usuario
+                {createdBy: user._id},
+                {company: user.company?._id}
             ]
-        };
+        });
+        
+        res.send({clients});
 
-        // Si el usuario pertenece a una compañía, incluir los clientes de esa compañía
-        if (user.companyId) {
-            query.$or.push({ companyId: user.companyId });
-        }
-        
-        // Buscar clientes
-        const clients = await clientsModel.find(query);
-        
-        res.send({ clients });
-    } catch(error) {
+    }catch(error){
         console.log(error);
         handleHttpError(res, "ERROR_GET_CLIENTS");
     }

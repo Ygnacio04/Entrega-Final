@@ -69,10 +69,10 @@ const DeliveryNoteSchema = new mongoose.Schema({
         ref: 'User',
         required: true
     },
-    // Relación directa con la compañía (usando ID de compañía)
-    companyId: {
+    // Relación con la compañía
+    company: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Company'
+        ref: 'User'  // Referencia al usuario que contiene la información de la compañía
     },
     date: {
         type: Date,
@@ -119,7 +119,6 @@ const DeliveryNoteSchema = new mongoose.Schema({
     timestamps: true,
     versionKey: false
 });
-
 
 // Plugin para soft delete
 DeliveryNoteSchema.plugin(mongooseDelete, { overrideMethods: "all" });

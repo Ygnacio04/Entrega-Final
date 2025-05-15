@@ -37,20 +37,23 @@ const ClientSchema = new mongoose.Schema({
         type: String,
         trim: true
     },
+    // Relación con usuario/compañía que creó el cliente
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true
     },
-    companyId: {
+    // Relación con la compañía si el cliente pertenece a una compañía
+    company: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Company'
+        ref: 'User'  // Referencia al usuario que contiene la información de la compañía
     }
 }, {
     timestamps: true,
     versionKey: false
 });
 
+// Plugin para soft delete
 ClientSchema.plugin(mongooseDelete, { overrideMethods: "all" });
 
 module.exports = mongoose.model('Client', ClientSchema);

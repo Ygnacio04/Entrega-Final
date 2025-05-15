@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const mongooseDelete = require("mongoose-delete");
 
+// Esquema para las invitaciones
 const invitationSchema = new mongoose.Schema({
     inviterId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -12,8 +13,7 @@ const invitationSchema = new mongoose.Schema({
         required: true
     },
     companyId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Company'
+        type: mongoose.Schema.Types.ObjectId
     },
     companyName: {
         type: String
@@ -34,7 +34,7 @@ const invitationSchema = new mongoose.Schema({
     }
 }, { _id: true });
 
-const UserSchema = new mongoose.Schema({
+const UserScheme = new mongoose.Schema({
     firstName: { 
         type: String,
         trim: true,
@@ -53,9 +53,45 @@ const UserSchema = new mongoose.Schema({
         type: String, 
         required: true 
     },
-    companyId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Company'
+    company: {
+        name: { 
+            type: String,
+            trim: true 
+        },
+        cif: { 
+            type: String,
+            trim: true 
+        },
+        address: {
+            street: { 
+                type: String, 
+                trim: true 
+            },
+            number: { 
+                type: Number, 
+                min: 0 
+            },
+            postal: { 
+                type: Number,
+                min: 0 
+            },
+            city: { 
+                type: String,
+                trim: true 
+            }
+        },
+        partners: [{
+            _id: { 
+                type: String,
+                required: true 
+            },
+            role: { 
+                type: String,
+                enum: ["invited", "admin", "user"],
+                required: true, 
+                default: "user"
+            }
+        }]
     },
     role: {
         type: String,
@@ -66,9 +102,11 @@ const UserSchema = new mongoose.Schema({
         type: Boolean,
         default: false 
     },
+    // Invitaciones
     receivedInvitations: [invitationSchema],
     sentInvitations: [invitationSchema],
     
+    // Campos existentes
     verificationCode: {
         type: String 
     },
@@ -90,6 +128,6 @@ const UserSchema = new mongoose.Schema({
     versionKey: false
 });
 
-UserSchema.plugin(mongooseDelete, { overrideMethods: "all" }); 
+UserScheme.plugin(mongooseDelete, { overrideMethods: "all" }); 
 
-module.exports = mongoose.model('User', UserSchema);
+module.exports = mongoose.model('User', UserScheme);
