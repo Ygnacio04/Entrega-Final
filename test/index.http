@@ -1,7 +1,7 @@
 @baseUrl = http://localhost:3000/api
 @baseUrlRoot = http://localhost:3000
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODIzMzQ1N2U4OWY5NDYxNDcyYjQ3NjMiLCJyb2xlIjoidXNlciIsImVtYWlsIjoiaTgxMGFnMDRAZ21haWwuY29tIiwiaWF0IjoxNzQ3MTM3NjUyLCJleHAiOjE3NDcyMjQwNTJ9.vVPbtluE-76TmwMIHnTgxMZ9TE-SMphEBmqfPRuZojc
-@clientId = 682336aab26d396f489e6671
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODI1YWYxYTgzNDQ0Yzc5NzY5NWM0NWEiLCJyb2xlIjoidXNlciIsImVtYWlsIjoiaTIwYWcwNEBnbWFpbC5jb20iLCJpYXQiOjE3NDczMDEyNTUsImV4cCI6MTc0NzM4NzY1NX0.Afsth0WzBAU-gb7vhkJ9HZ9CRwcSAIwh4tTKbt80fOk
+@clientId = 6825aea6b102747204da8a18
 @projectId = 682336c6b26d396f489e667c
 @deliveryNoteId = 68233e871151a43add53faf8
 
@@ -16,7 +16,7 @@ Content-Type: application/json
 {
   "firstName": "Ignacio",
   "lastName": "Arregui",
-  "email": "i810ag04@gmail.com",
+  "email": "i20ag04@gmail.com",
   "password": "Password123"
 }
 
@@ -25,8 +25,8 @@ POST {{baseUrl}}/user/verify-email
 Content-Type: application/json
 
 {
-  "email": "i810ag04@gmail.com",
-  "verificationCode": "348553"
+  "email": "i20ag04@gmail.com",
+  "verificationCode": "884637"
 }
 
 ### 3. Login de usuario
@@ -35,7 +35,7 @@ POST {{baseUrl}}/user/login
 Content-Type: application/json
 
 {
-  "email": "i810ag04@gmail.com",
+  "email": "i20ag04@gmail.com",
   "password": "Password123"
 }
 

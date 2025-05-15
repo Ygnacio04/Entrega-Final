@@ -23,10 +23,10 @@ const ProjectSchema = new mongoose.Schema({
         ref: 'User',
         required: true
     },
-    // Relación con la compañía si el proyecto pertenece a una compañía
-    company: {
+    // Relación directa con la compañía (usando ID de compañía)
+    companyId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'  // Referencia al usuario que contiene la información de la compañía
+        ref: 'Company'
     },
     startDate: {
         type: Date,
