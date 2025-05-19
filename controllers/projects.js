@@ -1,5 +1,5 @@
 const { matchedData } = require("express-validator");
-const { projectsModel, clientsModel } = require("../models");
+const { projectsModel, clientsModel, usersModel  } = require("../models");
 const { handleHttpError } = require("../utils/handleHttpError");
 
 /**
@@ -17,8 +17,17 @@ const createProject = async (req, res) => {
         const clientQuery = { _id: body.client, $or: [{createdBy: user._id}] };
         
         // Solo añadir filtro de compañía si el usuario tiene una
-        if (user.company && user.company._id) {
-            clientQuery.$or.push({company: user.company._id});
+        if (user.company && user.company.name && user.company.cif) {
+            // Encontrar todos los usuarios que pertenecen a la misma compañía
+            const companyUsers = await usersModel.find({
+                'company.name': user.company.name,
+                'company.cif': user.company.cif
+            }).select('_id');
+            
+            const companyUserIds = companyUsers.map(u => u._id.toString());
+            
+            // Añadir condición para incluir clientes creados por cualquier usuario de la compañía
+            clientQuery.$or.push({createdBy: { $in: companyUserIds }});
         }
         
         // Ver si el cliente existe y pertenece al usuario o su compañía
@@ -36,8 +45,17 @@ const createProject = async (req, res) => {
         };
         
         // Solo añadir filtro de compañía si el usuario tiene una
-        if (user.company && user.company._id) {
-            existingProjectQuery.$or.push({company: user.company._id});
+        if (user.company && user.company.name && user.company.cif) {
+            // Usar los mismos companyUserIds que ya tenemos
+            const companyUsers = await usersModel.find({
+                'company.name': user.company.name,
+                'company.cif': user.company.cif
+            }).select('_id');
+            
+            const companyUserIds = companyUsers.map(u => u._id.toString());
+            
+            // Añadir condición para incluir proyectos creados por cualquier usuario de la compañía
+            existingProjectQuery.$or.push({createdBy: { $in: companyUserIds }});
         }
         
         // Ver si el proyecto ya existe para este cliente y usuario/compañía
@@ -79,8 +97,17 @@ const getProjects = async (req, res) => {
        const query = { $or: [{createdBy: user._id}] };
        
        // Solo añadir filtro de compañía si el usuario tiene una
-       if (user.company && user.company._id) {
-           query.$or.push({company: user.company._id});
+       if (user.company && user.company.name && user.company.cif) {
+            // Encontrar todos los usuarios que pertenecen a la misma compañía
+            const companyUsers = await usersModel.find({
+                'company.name': user.company.name,
+                'company.cif': user.company.cif
+            }).select('_id');
+            
+            const companyUserIds = companyUsers.map(u => u._id.toString());
+            
+            // Añadir condición para incluir proyectos creados por cualquier usuario de la compañía
+            query.$or.push({createdBy: { $in: companyUserIds }});
        }
        
        // Añadir filtro por cliente si se proporciona
@@ -113,8 +140,17 @@ const getProject = async (req, res) => {
        const query = { _id: id, $or: [{createdBy: user._id}] };
        
        // Solo añadir filtro de compañía si el usuario tiene una
-       if (user.company && user.company._id) {
-           query.$or.push({company: user.company._id});
+       if (user.company && user.company.name && user.company.cif) {
+            // Encontrar todos los usuarios que pertenecen a la misma compañía
+            const companyUsers = await usersModel.find({
+                'company.name': user.company.name,
+                'company.cif': user.company.cif
+            }).select('_id');
+            
+            const companyUserIds = companyUsers.map(u => u._id.toString());
+            
+            // Añadir condición para incluir proyectos creados por cualquier usuario de la compañía
+            query.$or.push({createdBy: { $in: companyUserIds }});
        }
 
        // Buscar proyecto por ID con la consulta optimizada
@@ -143,15 +179,24 @@ const updateProject = async (req, res) => {
        const user = req.user;
 
        // Construir consulta base para el proyecto
-       const projectQuery = { _id: id, $or: [{createdBy: user._id}] };
+       const query = { _id: id, $or: [{createdBy: user._id}] };
        
        // Solo añadir filtro de compañía si el usuario tiene una
-       if (user.company && user.company._id) {
-           projectQuery.$or.push({company: user.company._id});
+       if (user.company && user.company.name && user.company.cif) {
+            // Encontrar todos los usuarios que pertenecen a la misma compañía
+            const companyUsers = await usersModel.find({
+                'company.name': user.company.name,
+                'company.cif': user.company.cif
+            }).select('_id');
+            
+            const companyUserIds = companyUsers.map(u => u._id.toString());
+            
+            // Añadir condición para incluir proyectos creados por cualquier usuario de la compañía
+            query.$or.push({createdBy: { $in: companyUserIds }});
        }
 
        // Verificar que el proyecto existe y pertenece al usuario o su compañía
-       const projectExists = await projectsModel.findOne(projectQuery);
+       const projectExists = await projectsModel.findOne(query);
 
        if (!projectExists) {
            return handleHttpError(res, "PROJECT_NOT_FOUND", 404);
@@ -159,12 +204,21 @@ const updateProject = async (req, res) => {
 
        // Si se está actualizando el cliente, verificar que existe y pertenece al usuario/compañía
        if (body.client) {
-           // Construir consulta base para el cliente
+           // Construir consulta para el cliente
            const clientQuery = { _id: body.client, $or: [{createdBy: user._id}] };
            
            // Solo añadir filtro de compañía si el usuario tiene una
-           if (user.company && user.company._id) {
-               clientQuery.$or.push({company: user.company._id});
+           if (user.company && user.company.name && user.company.cif) {
+                // Encontrar todos los usuarios que pertenecen a la misma compañía
+                const companyUsers = await usersModel.find({
+                    'company.name': user.company.name,
+                    'company.cif': user.company.cif
+                }).select('_id');
+                
+                const companyUserIds = companyUsers.map(u => u._id.toString());
+                
+                // Añadir condición para incluir clientes creados por cualquier usuario de la compañía
+                clientQuery.$or.push({createdBy: { $in: companyUserIds }});
            }
 
            const client = await clientsModel.findOne(clientQuery);
@@ -203,8 +257,17 @@ const deleteProject = async (req, res) => {
         const query = { _id: id, $or: [{createdBy: user._id}] };
         
         // Solo añadir filtro de compañía si el usuario tiene una
-        if (user.company && user.company._id) {
-            query.$or.push({company: user.company._id});
+        if (user.company && user.company.name && user.company.cif) {
+            // Encontrar todos los usuarios que pertenecen a la misma compañía
+            const companyUsers = await usersModel.find({
+                'company.name': user.company.name,
+                'company.cif': user.company.cif
+            }).select('_id');
+            
+            const companyUserIds = companyUsers.map(u => u._id.toString());
+            
+            // Añadir condición para incluir proyectos creados por cualquier usuario de la compañía
+            query.$or.push({createdBy: { $in: companyUserIds }});
         }
 
         // Verificar que el proyecto existe
@@ -241,8 +304,17 @@ const getArchivedProjects = async (req, res) => {
         const query = {$or: [{createdBy: user._id}] };
         
         // Solo añadir filtro de compañía si el usuario tiene una
-        if (user.company && user.company._id) {
-            query.$or.push({company: user.company._id});
+        if (user.company && user.company.name && user.company.cif) {
+            // Encontrar todos los usuarios que pertenecen a la misma compañía
+            const companyUsers = await usersModel.find({
+                'company.name': user.company.name,
+                'company.cif': user.company.cif
+            }).select('_id');
+            
+            const companyUserIds = companyUsers.map(u => u._id.toString());
+            
+            // Añadir condición para incluir proyectos creados por cualquier usuario de la compañía
+            query.$or.push({createdBy: { $in: companyUserIds }});
         }
         
         // Buscar proyectos archivados con la consulta optimizada
@@ -271,14 +343,28 @@ const restoreProject = async (req, res) => {
         const query = { _id: id, $or: [{createdBy: user._id}] };
         
         // Solo añadir filtro de compañía si el usuario tiene una
-        if (user.company && user.company._id) {
-            query.$or.push({company: user.company._id});
+        if (user.company && user.company.name && user.company.cif) {
+            // Encontrar todos los usuarios que pertenecen a la misma compañía
+            const companyUsers = await usersModel.find({
+                'company.name': user.company.name,
+                'company.cif': user.company.cif
+            }).select('_id');
+            
+            const companyUserIds = companyUsers.map(u => u._id.toString());
+            
+            // Añadir condición para incluir proyectos creados por cualquier usuario de la compañía
+            query.$or.push({createdBy: { $in: companyUserIds }});
         }
 
         // Verificar que el proyecto archivado existe
         const project = await projectsModel.findOneDeleted(query);
 
         if (!project) {
+            // Verificar si existe un proyecto no archivado con este ID
+            const activeProject = await projectsModel.findOne({ _id: id });
+            if (activeProject) {
+                return handleHttpError(res, "PROJECT_NOT_ARCHIVED", 400);
+            }
             return handleHttpError(res, "ARCHIVED_PROJECT_NOT_FOUND", 404);
         }
 

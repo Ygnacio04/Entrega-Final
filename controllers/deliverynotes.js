@@ -1,5 +1,5 @@
 const { matchedData } = require("express-validator");
-const { deliveryNotesModel, projectsModel, clientsModel } = require("../models");
+const { deliveryNotesModel, projectsModel, clientsModel, usersModel } = require("../models");
 const { handleHttpError } = require("../utils/handleHttpError");
 const PDFDocument = require("pdfkit");
 const uploadToPinata = require("../utils/uploadToPinata");
@@ -21,8 +21,17 @@ const createDeliveryNote = async (req, res) => {
         const projectQuery = { _id: body.project, $or: [{createdBy: user._id}] };
         
         // Solo añadir filtro de compañía si el usuario tiene una
-        if (user.company && user.company._id) {
-            projectQuery.$or.push({company: user.company._id});
+        if (user.company && user.company.name && user.company.cif) {
+            // Encontrar todos los usuarios que pertenecen a la misma compañía
+            const companyUsers = await usersModel.find({
+                'company.name': user.company.name,
+                'company.cif': user.company.cif
+            }).select('_id');
+            
+            const companyUserIds = companyUsers.map(u => u._id.toString());
+            
+            // Añadir condición para incluir proyectos creados por cualquier usuario de la compañía
+            projectQuery.$or.push({createdBy: { $in: companyUserIds }});
         }
 
         // Ver si el proyecto existe y pertenece al usuario o compañía
@@ -37,8 +46,17 @@ const createDeliveryNote = async (req, res) => {
         const countQuery = { $or: [{createdBy: user._id}] };
         
         // Solo añadir filtro de compañía si el usuario tiene una
-        if (user.company && user.company._id) {
-            countQuery.$or.push({company: user.company._id});
+        if (user.company && user.company.name && user.company.cif) {
+            // Usar los mismos companyUserIds que ya tenemos
+            const companyUsers = await usersModel.find({
+                'company.name': user.company.name,
+                'company.cif': user.company.cif
+            }).select('_id');
+            
+            const companyUserIds = companyUsers.map(u => u._id.toString());
+            
+            // Añadir condición para incluir albaranes creados por cualquier usuario de la compañía
+            countQuery.$or.push({createdBy: { $in: companyUserIds }});
         }
         
         const count = await deliveryNotesModel.countDocuments(countQuery);
@@ -88,8 +106,17 @@ const getDeliveryNotes = async (req, res) => {
         const query = { $or: [{createdBy: user._id}] };
         
         // Solo añadir filtro de compañía si el usuario tiene una
-        if (user.company && user.company._id) {
-            query.$or.push({company: user.company._id});
+        if (user.company && user.company.name && user.company.cif) {
+            // Encontrar todos los usuarios que pertenecen a la misma compañía
+            const companyUsers = await usersModel.find({
+                'company.name': user.company.name,
+                'company.cif': user.company.cif
+            }).select('_id');
+            
+            const companyUserIds = companyUsers.map(u => u._id.toString());
+            
+            // Añadir condición para incluir albaranes creados por cualquier usuario de la compañía
+            query.$or.push({createdBy: { $in: companyUserIds }});
         }
 
         // Filtrar por proyecto
@@ -108,8 +135,17 @@ const getDeliveryNotes = async (req, res) => {
             const projectQuery = { client: clientId, $or: [{createdBy: user._id}] };
             
             // Solo añadir filtro de compañía si el usuario tiene una
-            if (user.company && user.company._id) {
-                projectQuery.$or.push({company: user.company._id});
+            if (user.company && user.company.name && user.company.cif) {
+                // Encontrar todos los usuarios que pertenecen a la misma compañía
+                const companyUsers = await usersModel.find({
+                    'company.name': user.company.name,
+                    'company.cif': user.company.cif
+                }).select('_id');
+                
+                const companyUserIds = companyUsers.map(u => u._id.toString());
+                
+                // Añadir condición para incluir proyectos creados por cualquier usuario de la compañía
+                projectQuery.$or.push({createdBy: { $in: companyUserIds }});
             }
             
             const projects = await projectsModel.find(projectQuery);
@@ -158,8 +194,17 @@ const getDeliveryNote = async (req, res) => {
         const query = { _id: id, $or: [{createdBy: user._id}] };
         
         // Solo añadir filtro de compañía si el usuario tiene una
-        if (user.company && user.company._id) {
-            query.$or.push({company: user.company._id});
+        if (user.company && user.company.name && user.company.cif) {
+            // Encontrar todos los usuarios que pertenecen a la misma compañía
+            const companyUsers = await usersModel.find({
+                'company.name': user.company.name,
+                'company.cif': user.company.cif
+            }).select('_id');
+            
+            const companyUserIds = companyUsers.map(u => u._id.toString());
+            
+            // Añadir condición para incluir albaranes creados por cualquier usuario de la compañía
+            query.$or.push({createdBy: { $in: companyUserIds }});
         }
 
         // Buscar albarán por ID con la consulta optimizada
@@ -199,8 +244,17 @@ const updateDeliveryNote = async (req, res) => {
         const query = { _id: id, $or: [{createdBy: user._id}] };
         
         // Solo añadir filtro de compañía si el usuario tiene una
-        if (user.company && user.company._id) {
-            query.$or.push({company: user.company._id});
+        if (user.company && user.company.name && user.company.cif) {
+            // Encontrar todos los usuarios que pertenecen a la misma compañía
+            const companyUsers = await usersModel.find({
+                'company.name': user.company.name,
+                'company.cif': user.company.cif
+            }).select('_id');
+            
+            const companyUserIds = companyUsers.map(u => u._id.toString());
+            
+            // Añadir condición para incluir albaranes creados por cualquier usuario de la compañía
+            query.$or.push({createdBy: { $in: companyUserIds }});
         }
 
         // Verificar que el albarán existe y pertenece al usuario o compañía
@@ -221,8 +275,17 @@ const updateDeliveryNote = async (req, res) => {
             const projectQuery = { _id: body.project, $or: [{createdBy: user._id}] };
             
             // Solo añadir filtro de compañía si el usuario tiene una
-            if (user.company && user.company._id) {
-                projectQuery.$or.push({company: user.company._id});
+            if (user.company && user.company.name && user.company.cif) {
+                // Encontrar todos los usuarios que pertenecen a la misma compañía
+                const companyUsers = await usersModel.find({
+                    'company.name': user.company.name,
+                    'company.cif': user.company.cif
+                }).select('_id');
+                
+                const companyUserIds = companyUsers.map(u => u._id.toString());
+                
+                // Añadir condición para incluir proyectos creados por cualquier usuario de la compañía
+                projectQuery.$or.push({createdBy: { $in: companyUserIds }});
             }
 
             const project = await projectsModel.findOne(projectQuery);
@@ -266,11 +329,6 @@ const updateDeliveryNote = async (req, res) => {
  * @param {Object} req
  * @param {Object} res
  */
-/**
- * Obtener albaranes archivados
- * @param {Object} req
- * @param {Object} res
- */
 const getArchivedDeliveryNotes = async (req, res) => {
     try {
         const user = req.user;
@@ -280,8 +338,17 @@ const getArchivedDeliveryNotes = async (req, res) => {
         const query = { $or: [{createdBy: user._id}] };
         
         // Solo añadir filtro de compañía si el usuario tiene una
-        if (user.company && user.company._id) {
-            query.$or.push({company: user.company._id});
+        if (user.company && user.company.name && user.company.cif) {
+            // Encontrar todos los usuarios que pertenecen a la misma compañía
+            const companyUsers = await usersModel.find({
+                'company.name': user.company.name,
+                'company.cif': user.company.cif
+            }).select('_id');
+            
+            const companyUserIds = companyUsers.map(u => u._id.toString());
+            
+            // Añadir condición para incluir albaranes creados por cualquier usuario de la compañía
+            query.$or.push({createdBy: { $in: companyUserIds }});
         }
         
         // Filtrar por proyecto
@@ -300,8 +367,17 @@ const getArchivedDeliveryNotes = async (req, res) => {
             const projectQuery = { client: clientId, $or: [{createdBy: user._id}] };
             
             // Solo añadir filtro de compañía si el usuario tiene una
-            if (user.company && user.company._id) {
-                projectQuery.$or.push({company: user.company._id});
+            if (user.company && user.company.name && user.company.cif) {
+                // Encontrar todos los usuarios que pertenecen a la misma compañía
+                const companyUsers = await usersModel.find({
+                    'company.name': user.company.name,
+                    'company.cif': user.company.cif
+                }).select('_id');
+                
+                const companyUserIds = companyUsers.map(u => u._id.toString());
+                
+                // Añadir condición para incluir proyectos creados por cualquier usuario de la compañía
+                projectQuery.$or.push({createdBy: { $in: companyUserIds }});
             }
             
             const projects = await projectsModel.find(projectQuery);
@@ -352,23 +428,38 @@ const restoreDeliveryNote = async (req, res) => {
         const query = { _id: id, $or: [{createdBy: user._id}] };
         
         // Solo añadir filtro de compañía si el usuario tiene una
-        if (user.company && user.company._id) {
-            query.$or.push({company: user.company._id});
+        if (user.company && user.company.name && user.company.cif) {
+            // Encontrar todos los usuarios que pertenecen a la misma compañía
+            const companyUsers = await usersModel.find({
+                'company.name': user.company.name,
+                'company.cif': user.company.cif
+            }).select('_id');
+            
+            const companyUserIds = companyUsers.map(u => u._id.toString());
+            
+            // Añadir condición para incluir albaranes creados por cualquier usuario de la compañía
+            query.$or.push({createdBy: { $in: companyUserIds }});
         }
 
         // Verificar que el albarán archivado existe y pertenece al usuario o su compañía
         const deliveryNote = await deliveryNotesModel.findOneDeleted(query);
 
         if (!deliveryNote) {
+            // Verificar si existe un albarán no archivado con este ID
+            const activeDeliveryNote = await deliveryNotesModel.findOne({ _id: id });
+            if (activeDeliveryNote) {
+                return handleHttpError(res, "DELIVERY_NOTE_NOT_ARCHIVED", 400);
+            }
             return handleHttpError(res, "ARCHIVED_DELIVERY_NOTE_NOT_FOUND", 404);
         }
+        
         // Intentar restaurar usando el método del plugin
         await deliveryNotesModel.restore({ _id: id });
         
         // Verificar explícitamente que ya no está en los documentos eliminados
         const stillDeleted = await deliveryNotesModel.findOneDeleted({ _id: id });
         
-        if (stillDeleted) {        
+        if (stillDeleted) {
             // Intento alternativo: actualizar directamente los campos de borrado
             await deliveryNotesModel.updateOne(
                 { _id: id },
@@ -396,8 +487,6 @@ const restoreDeliveryNote = async (req, res) => {
             .populate('createdBy', 'firstName lastName email company')
             .populate('company', 'company');
 
-
-
         res.send({ 
             deliveryNote: restoredDeliveryNote, 
             message: "DELIVERY_NOTE_RESTORED" 
@@ -406,6 +495,7 @@ const restoreDeliveryNote = async (req, res) => {
         handleHttpError(res, "ERROR_RESTORE_DELIVERY_NOTE");
     }
 };
+
 
 
 /**
@@ -423,8 +513,17 @@ const deleteDeliveryNote = async (req, res) => {
         const query = { _id: id, $or: [{createdBy: user._id}] };
         
         // Solo añadir filtro de compañía si el usuario tiene una
-        if (user.company && user.company._id) {
-            query.$or.push({company: user.company._id});
+        if (user.company && user.company.name && user.company.cif) {
+            // Encontrar todos los usuarios que pertenecen a la misma compañía
+            const companyUsers = await usersModel.find({
+                'company.name': user.company.name,
+                'company.cif': user.company.cif
+            }).select('_id');
+            
+            const companyUserIds = companyUsers.map(u => u._id.toString());
+            
+            // Añadir condición para incluir albaranes creados por cualquier usuario de la compañía
+            query.$or.push({createdBy: { $in: companyUserIds }});
         }
 
         // Verificar que el albarán existe
@@ -472,8 +571,17 @@ const signDeliveryNote = async (req, res) => {
         const query = { _id: id, $or: [{createdBy: user._id}] };
         
         // Solo añadir filtro de compañía si el usuario tiene una
-        if (user.company && user.company._id) {
-            query.$or.push({company: user.company._id});
+        if (user.company && user.company.name && user.company.cif) {
+            // Encontrar todos los usuarios que pertenecen a la misma compañía
+            const companyUsers = await usersModel.find({
+                'company.name': user.company.name,
+                'company.cif': user.company.cif
+            }).select('_id');
+            
+            const companyUserIds = companyUsers.map(u => u._id.toString());
+            
+            // Añadir condición para incluir albaranes creados por cualquier usuario de la compañía
+            query.$or.push({createdBy: { $in: companyUserIds }});
         }
 
         // Verificar que el albarán existe
@@ -488,7 +596,7 @@ const signDeliveryNote = async (req, res) => {
             return handleHttpError(res, "DELIVERY_NOTE_ALREADY_SIGNED", 400);
         }
 
-        // Subir la firma a IPFS via Pinata
+        // Resto del código para la firma (sin cambios)...
         const buffer = req.file.buffer;
         const originalname = req.file.originalname;
         const file = {
@@ -534,6 +642,7 @@ const signDeliveryNote = async (req, res) => {
     }
 };
 
+
 /**
  * Generar y descargar el PDF de un albarán
  * @param {Object} req
@@ -549,8 +658,17 @@ const getDeliveryNotePdf = async (req, res) => {
         const query = { _id: id, $or: [{createdBy: user._id}] };
         
         // Solo añadir filtro de compañía si el usuario tiene una
-        if (user.company && user.company._id) {
-            query.$or.push({company: user.company._id});
+        if (user.company && user.company.name && user.company.cif) {
+            // Encontrar todos los usuarios que pertenecen a la misma compañía
+            const companyUsers = await usersModel.find({
+                'company.name': user.company.name,
+                'company.cif': user.company.cif
+            }).select('_id');
+            
+            const companyUserIds = companyUsers.map(u => u._id.toString());
+            
+            // Añadir condición para incluir albaranes creados por cualquier usuario de la compañía
+            query.$or.push({createdBy: { $in: companyUserIds }});
         }
 
         // Verificar que el albarán existe
@@ -568,9 +686,8 @@ const getDeliveryNotePdf = async (req, res) => {
             return handleHttpError(res, "DELIVERY_NOTE_NOT_FOUND", 404);
         }
 
-        // Si el albarán ya tiene un PDF cargado en IPFS
+        // El resto del código para gestionar el PDF sigue igual...
         if (deliveryNote.pdfUrl) {            
-            // Si se solicita formato JSON o estamos en un cliente que probablemente no maneje redirecciones (auto)
             if (format === 'json' || (format === 'auto' && req.get('User-Agent')?.includes('PostmanRuntime') || req.get('User-Agent')?.includes('Visual Studio Code'))) {
                 return res.json({
                     message: "PDF disponible en IPFS",
@@ -580,11 +697,9 @@ const getDeliveryNotePdf = async (req, res) => {
                 });
             }
             
-            // Si se solicita formato PDF o es un navegador (formato auto)
             return res.redirect(deliveryNote.pdfUrl);
         }
 
-        // Si se solicita formato JSON pero no hay PDF en IPFS
         if (format === 'json') {
             return res.json({
                 message: "No hay PDF almacenado en IPFS para este albarán",
@@ -592,19 +707,15 @@ const getDeliveryNotePdf = async (req, res) => {
             });
         }
 
-        // Si no tiene PDF, generamos uno en tiempo real
         const doc = new PDFDocument({ margin: 50 });
         
-        // Configurar la respuesta
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename=albaran-${deliveryNote.number}.pdf`);
         
         doc.pipe(res);
         
-        // Generar contenido del PDF
         generatePdfContent(doc, deliveryNote);
         
-        // Finalizar el documento
         doc.end();
     } catch (error) {
         console.log(error);

@@ -1,5 +1,5 @@
 const { matchedData } = require("express-validator");
-const { clientsModel } = require("../models");
+const { clientsModel, usersModel } = require("../models");
 const { handleHttpError } = require("../utils/handleHttpError");
 
 /**
@@ -56,8 +56,17 @@ const getClient = async (req, res) => {
         const query = { _id: id, $or: [{createdBy: user._id}] };
         
         // Solo añadir filtro de compañía si el usuario tiene una
-        if (user.company && user.company._id) {
-            query.$or.push({company: user.company._id});
+        if (user.company && user.company.name && user.company.cif) {
+            // Encontrar todos los usuarios que pertenecen a la misma compañía
+            const companyUsers = await usersModel.find({
+                'company.name': user.company.name,
+                'company.cif': user.company.cif
+            }).select('_id');
+            
+            const companyUserIds = companyUsers.map(u => u._id.toString());
+            
+            // Añadir condición para incluir clientes creados por cualquier usuario de la compañía
+            query.$or.push({createdBy: { $in: companyUserIds }});
         }
 
         // Buscar cliente con la consulta optimizada
@@ -89,16 +98,24 @@ const getClients = async (req, res) => {
         const query = { $or: [{createdBy: user._id}] };
         
         // Solo añadir filtro de compañía si el usuario tiene una
-        if (user.company && user.company._id) {
-            query.$or.push({company: user.company._id});
+        if (user.company && user.company.name && user.company.cif) {
+            // Encontrar todos los usuarios que pertenecen a la misma compañía
+            const companyUsers = await usersModel.find({
+                'company.name': user.company.name,
+                'company.cif': user.company.cif
+            }).select('_id');
+            
+            const companyUserIds = companyUsers.map(u => u._id.toString());
+            
+            // Añadir condición para incluir clientes creados por cualquier usuario de la compañía
+            query.$or.push({createdBy: { $in: companyUserIds }});
         }
 
-        // Buscar clientes con la consulta optimizada
+        // Buscar clientes con la consulta modificada
         const clients = await clientsModel.find(query);
         
         res.send({clients});
-
-    }catch(error){
+    } catch(error) {
         console.log(error);
         handleHttpError(res, "ERROR_GET_CLIENTS");
     }
@@ -120,8 +137,17 @@ const updateClient = async (req, res) => {
         const query = { _id: id, $or: [{createdBy: user._id}] };
         
         // Solo añadir filtro de compañía si el usuario tiene una
-        if (user.company && user.company._id) {
-            query.$or.push({company: user.company._id});
+        if (user.company && user.company.name && user.company.cif) {
+            // Encontrar todos los usuarios que pertenecen a la misma compañía
+            const companyUsers = await usersModel.find({
+                'company.name': user.company.name,
+                'company.cif': user.company.cif
+            }).select('_id');
+            
+            const companyUserIds = companyUsers.map(u => u._id.toString());
+            
+            // Añadir condición para incluir clientes creados por cualquier usuario de la compañía
+            query.$or.push({createdBy: { $in: companyUserIds }});
         }
 
         // Verificar que existe el cliente
@@ -161,8 +187,17 @@ const deleteClient = async (req, res) => {
         const query = { _id: id, $or: [{createdBy: user._id}] };
         
         // Solo añadir filtro de compañía si el usuario tiene una
-        if (user.company && user.company._id) {
-            query.$or.push({company: user.company._id});
+        if (user.company && user.company.name && user.company.cif) {
+            // Encontrar todos los usuarios que pertenecen a la misma compañía
+            const companyUsers = await usersModel.find({
+                'company.name': user.company.name,
+                'company.cif': user.company.cif
+            }).select('_id');
+            
+            const companyUserIds = companyUsers.map(u => u._id.toString());
+            
+            // Añadir condición para incluir clientes creados por cualquier usuario de la compañía
+            query.$or.push({createdBy: { $in: companyUserIds }});
         }
 
         // Verificar que el cliente existe
@@ -199,8 +234,17 @@ const getArchivedClients = async (req, res) => {
         const query = { $or: [{createdBy: user._id}] };
         
         // Solo añadir filtro de compañía si el usuario tiene una
-        if (user.company && user.company._id) {
-            query.$or.push({company: user.company._id});
+        if (user.company && user.company.name && user.company.cif) {
+            // Encontrar todos los usuarios que pertenecen a la misma compañía
+            const companyUsers = await usersModel.find({
+                'company.name': user.company.name,
+                'company.cif': user.company.cif
+            }).select('_id');
+            
+            const companyUserIds = companyUsers.map(u => u._id.toString());
+            
+            // Añadir condición para incluir clientes creados por cualquier usuario de la compañía
+            query.$or.push({createdBy: { $in: companyUserIds }});
         }
 
         // Buscar clientes archivados con la consulta optimizada
@@ -227,14 +271,28 @@ const restoreClient = async (req, res) => {
         const query = { _id: id, $or: [{createdBy: user._id}] };
         
         // Solo añadir filtro de compañía si el usuario tiene una
-        if (user.company && user.company._id) {
-            query.$or.push({company: user.company._id});
+        if (user.company && user.company.name && user.company.cif) {
+            // Encontrar todos los usuarios que pertenecen a la misma compañía
+            const companyUsers = await usersModel.find({
+                'company.name': user.company.name,
+                'company.cif': user.company.cif
+            }).select('_id');
+            
+            const companyUserIds = companyUsers.map(u => u._id.toString());
+            
+            // Añadir condición para incluir clientes creados por cualquier usuario de la compañía
+            query.$or.push({createdBy: { $in: companyUserIds }});
         }
 
         // Verificar que el cliente archivado existe
         const client = await clientsModel.findOneDeleted(query);
 
         if (!client) {
+            // Verificar si existe un cliente no archivado con este ID
+            const activeClient = await clientsModel.findOne({ _id: id });
+            if (activeClient) {
+                return handleHttpError(res, "CLIENT_NOT_ARCHIVED", 400);
+            }
             return handleHttpError(res, "ARCHIVED_CLIENT_NOT_FOUND", 404);
         }
 

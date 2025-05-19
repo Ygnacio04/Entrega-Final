@@ -1,9 +1,9 @@
 @baseUrl = http://localhost:3000/api
 @baseUrlRoot = http://localhost:3000
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODI1Y2M1MWVjYjczZjliOTdlYTM1ZjQiLCJyb2xlIjoidXNlciIsImVtYWlsIjoiaTIwYWcwNEBnbWFpbC5jb20iLCJpYXQiOjE3NDczMTM1MjMsImV4cCI6MTc0NzM5OTkyM30.omkcCbNmOGFUghe5JWaOLcwRluNzqvq4lWgbwDgWPio
-@clientId = 6825cc8eecb73f9b97ea35fd
-@projectId = 6825de9c911ec728528bda49
-@deliveryNoteId = 6825e6513ab96e5428277160
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODJiMDY2MTZkZDliMjhjYzlmOThiNTMiLCJyb2xlIjoidXNlciIsImVtYWlsIjoiaTIwYWcwNEBnbWFpbC5jb20iLCJpYXQiOjE3NDc2NTIxMTYsImV4cCI6MTc0NzczODUxNn0.f6JTQnuB2Z7nYW4Q8BadopDn9Jr6YZhb40S3l6s8p3M
+@clientId = 682b06e36dd9b28cc9f98b7a
+@projectId = 682b073f6dd9b28cc9f98ba3
+@deliveryNoteId = 682b1a3fbe52292805833f23
 
 ###############################################
 #            AUTENTICACIÓN DE USUARIOS       #
@@ -16,7 +16,7 @@ Content-Type: application/json
 {
   "firstName": "Ignacio",
   "lastName": "Arregui",
-  "email": "i810ag04@gmail.com",
+  "email": "i810ag04+1@gmail.com",
   "password": "Password123"
 }
 
@@ -25,8 +25,8 @@ POST {{baseUrl}}/user/verify-email
 Content-Type: application/json
 
 {
-  "email": "i810ag04@gmail.com",
-  "verificationCode": "348553"
+  "email": "i810ag04+1@gmail.com",
+  "verificationCode": "368267"
 }
 
 ### 3. Login de usuario
@@ -96,8 +96,8 @@ Content-Type: image/png
 #             GESTIÓN DE INVITACIONES        #
 ###############################################
 
-@invitationId = 682328628e9ababa65944b2a
-@invitatorToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODIzMjgzYThlOWFiYWJhNjU5NDRiMjMiLCJyb2xlIjoidXNlciIsImVtYWlsIjoiaTIwYWcwNEBnbWFpbC5jb20iLCJpYXQiOjE3NDcxMzQ1NTAsImV4cCI6MTc0NzIyMDk1MH0.kK4uMWIDeAD-HgeIMe7IZIaYPmWoHhLm3CZ90t6zfVU
+@invitationId = 682b067f6dd9b28cc9f98b5a
+@invitatorToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODJiMDY2MTZkZDliMjhjYzlmOThiNTMiLCJyb2xlIjoidXNlciIsImVtYWlsIjoiaTIwYWcwNEBnbWFpbC5jb20iLCJpYXQiOjE3NDc2NTAxNjMsImV4cCI6MTc0NzczNjU2M30.uU-or_g8fnrVMMSvmzY4ncIK2PDnx2Me6vCH2txNFLE
 
 ### 9. Registro de un segundo usuario para invitaciones
 POST {{baseUrl}}/user/register
@@ -116,7 +116,7 @@ Content-Type: application/json
 
 {
   "email": "i20ag04@gmail.com",
-  "verificationCode": "173603"
+  "verificationCode": "555547"
 }
 
 ### 9.5. Login de usuario
@@ -168,7 +168,7 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "name": "Empresa Cliente S.L.",
+  "name": "Empresa 2 Cliente S.L.",
   "nif": "B87654321",
   "address": {
     "street": "Calle Comercial",
